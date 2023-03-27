@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{2081A9EF-7088-4B61-9814-C3D5D2683459}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>Hypernex.Networking</RootNamespace>
+        <AssemblyName>Hypernex.Networking</AssemblyName>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <LangVersion>10</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="HypernexSharp">
+          <HintPath>Libs\HypernexSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Nexport">
+          <HintPath>Libs\Nexport.dll</HintPath>
+        </Reference>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="HypernexInstanceClient.cs" />
+        <Compile Include="HypernexInstance.cs" />
+        <Compile Include="HypernexSocketServer.cs" />
+        <Compile Include="Messages\Data\float2.cs" />
+        <Compile Include="Messages\Data\float3.cs" />
+        <Compile Include="Messages\Data\float4.cs" />
+        <Compile Include="Messages\Data\NetworkedObject.cs" />
+        <Compile Include="Messages\InstancePlayers.cs" />
+        <Compile Include="Messages\JoinAuth.cs" />
+        <Compile Include="Messages\PlayerUpdate.cs" />
+        <Compile Include="Messages\PlayerVoice.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="SafeMessage.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Libs" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="Messages\Data\README.md" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>

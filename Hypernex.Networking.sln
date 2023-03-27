@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypernex.Networking", "Hypernex.Networking\Hypernex.Networking.csproj", "{2081A9EF-7088-4B61-9814-C3D5D2683459}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hypernex.Networking.Server", "Hypernex.Networking.Server\Hypernex.Networking.Server.csproj", "{D677169A-2967-4270-AC2C-DB3BAA692012}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2081A9EF-7088-4B61-9814-C3D5D2683459}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2081A9EF-7088-4B61-9814-C3D5D2683459}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2081A9EF-7088-4B61-9814-C3D5D2683459}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2081A9EF-7088-4B61-9814-C3D5D2683459}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D677169A-2967-4270-AC2C-DB3BAA692012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D677169A-2967-4270-AC2C-DB3BAA692012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D677169A-2967-4270-AC2C-DB3BAA692012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D677169A-2967-4270-AC2C-DB3BAA692012}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

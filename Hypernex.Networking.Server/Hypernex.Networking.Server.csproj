@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TargetFramework>net7.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Samboy063.Tomlet" Version="5.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Hypernex.Networking\Hypernex.Networking.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="HypernexSharp">
+        <HintPath>..\Hypernex.Networking\Libs\HypernexSharp.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
