@@ -27,7 +27,6 @@ hypernexObject = new HypernexObject(new HypernexSettings
 {
     TargetDomain = ServerConfig.LoadedConfig.ServerDomain,
     IsHTTP = ServerConfig.LoadedConfig.IsServerHTTP,
-    IsWS = ServerConfig.LoadedConfig.IsServerWS,
     APIVersion = ServerConfig.LoadedConfig.APIVersion
 });
 hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.LoadedConfig.GlobalIp, 

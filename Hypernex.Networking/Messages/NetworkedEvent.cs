@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Nexport;
 
 namespace Hypernex.Networking.Messages;
@@ -27,53 +26,24 @@ public class NetworkedEvent
     /// </summary>
     /// <param name="server">The server to send data from</param>
     /// <param name="toClient">The ClientIdentifier to send data to</param>
-    /// <param name="eventName">The name of the Event to Invoke</param>
-    /// <param name="data">The data passed to the event</param>
     /// <param name="messageChannel">What channel the message should be sent over</param>
-    public static void FireClient(Server server, ClientIdentifier toClient, string eventName, object[] data,
-        MessageChannel messageChannel = MessageChannel.Reliable)
-    {
-        NetworkedEvent networkedEvent = new NetworkedEvent
-        {
-            EventName = eventName,
-            Data = data.ToList()
-        };
-        server.SendMessage(toClient, Msg.Serialize(networkedEvent), messageChannel);
-    }
+    public void FireClient(Server server, ClientIdentifier toClient,
+        MessageChannel messageChannel = MessageChannel.Reliable) =>
+        server.SendMessage(toClient, Msg.Serialize(this), messageChannel);
 
     /// <summary>
     /// Sends data from the specified Server to all of its connected clients
     /// </summary>
     /// <param name="server">The server to send data from</param>
-    /// <param name="eventName">The name of the Event to Invoke</param>
-    /// <param name="data">The data passed to the Event</param>
     /// <param name="messageChannel">What channel the message should be sent over</param>
-    public static void FireAllClients(Server server, string eventName, object[] data,
-        MessageChannel messageChannel = MessageChannel.Reliable)
-    {
-        NetworkedEvent networkedEvent = new NetworkedEvent
-        {
-            EventName = eventName,
-            Data = data.ToList()
-        };
-        server.BroadcastMessage(Msg.Serialize(networkedEvent), messageChannel);
-    }
+    public void FireAllClients(Server server, MessageChannel messageChannel = MessageChannel.Reliable) =>
+        server.BroadcastMessage(Msg.Serialize(this), messageChannel);
 
     /// <summary>
     /// Sends data from the specified Client to the connected Server
     /// </summary>
     /// <param name="client">The client to send data from</param>
-    /// <param name="eventName">The name of the Event to Invoke</param>
-    /// <param name="data">The data passed to the Event</param>
     /// <param name="messageChannel">What channel the message should be sent over</param>
-    public static void FireServer(Client client, string eventName, object[] data,
-        MessageChannel messageChannel = MessageChannel.Reliable)
-    {
-        NetworkedEvent networkedEvent = new NetworkedEvent
-        {
-            EventName = eventName,
-            Data = data.ToList()
-        };
-        client.SendMessage(Msg.Serialize(networkedEvent), messageChannel);
-    }
+    public void FireServer(Client client, MessageChannel messageChannel = MessageChannel.Reliable) =>
+        client.SendMessage(Msg.Serialize(this), messageChannel);
 }

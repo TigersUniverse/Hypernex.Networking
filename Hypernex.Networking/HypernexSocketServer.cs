@@ -34,7 +34,8 @@ public class HypernexSocketServer
         string localIp = "0.0.0.0", int beginPortRange = 15000, int endPortRange = 25000, bool useMultithreading = true,
         int threadUpdateTime = 10, bool useIPV6 = false, Action onOpen = null)
     {
-        GameServerSocket = hypernexObject.OpenGameServerSocket(gameServerToken, onOpen);
+        GameServerSocket = hypernexObject.OpenGameServerSocket(gameServerToken);
+        GameServerSocket.OnOpen += () => onOpen?.Invoke();
         GameServerSocket.OnSocketEvent += response =>
         {
             switch (response.message.ToLower())
