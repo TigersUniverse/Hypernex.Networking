@@ -39,6 +39,38 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
         Console.WriteLine("Connected to Master Server!");
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("Ready!");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine("Input help for a list of commands");
         Console.ForegroundColor = ConsoleColor.White;
     });
-Console.ReadKey(true);
+HandleCommand(Console.ReadLine() ?? String.Empty);
+hypernexObject.CloseGameServerSocket();
+Console.ForegroundColor = ConsoleColor.DarkCyan;
+Console.WriteLine("Goodbye!");
+
+const string COMMANDS = "instances - Gets a list of all open instances\n" +
+                        "exit - Safely shuts down the server and all instances\n" +
+                        "help - Shows a list of all commands";
+
+void HandleCommand(string input)
+{
+    bool end = false;
+    string[] s = input.Split(" ");
+    if(s.Length <= 0)
+        HandleCommand(Console.ReadLine() ?? String.Empty);
+    switch (s[0].ToLower())
+    {
+        case "instances":
+            foreach (HypernexInstance hypernexInstance in hypernexSocketServer.Instances)
+                Console.WriteLine(hypernexInstance);
+            break;
+        case "exit":
+            end = true;
+            break;
+        case "help":
+            Console.WriteLine(COMMANDS);
+            break;
+    }
+    if(!end)
+        HandleCommand(Console.ReadLine() ?? String.Empty);
+}

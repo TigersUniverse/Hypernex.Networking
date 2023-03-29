@@ -20,6 +20,9 @@ public class HypernexInstance
     internal InstanceMeta _instanceMeta;
     internal ServerSettings _serverSettings;
     internal List<TempUserToken> ValidTokens = new();
+    internal List<string> Moderators = new();
+    internal List<string> BannedUsers = new();
+    internal List<string> SocketConnectedUsers = new();
 
     private HypernexSocketServer _hypernexSocketServer;
     private Server _server;
@@ -35,7 +38,8 @@ public class HypernexInstance
             if (msg.Item1)
             {
                 bool v =
-                    ValidTokens.Count(x => x.userId == msg.Item2.UserId && x.tempUserToken == msg.Item2.TempToken) > 0;
+                    ValidTokens.Count(x => x.userId == msg.Item2.UserId && x.tempUserToken == msg.Item2.TempToken) >
+                    0 && !BannedUsers.Contains(msg.Item2.UserId);
                 if (v)
                     AuthedUsers.Add(identifier, msg.Item2);
                 result.Invoke(v);
@@ -68,6 +72,13 @@ public class HypernexInstance
         _serverSettings = settings;
         _instanceMeta = instanceMeta;
         _hypernexSocketServer = hypernexSocketServer;
+    }
+
+    internal void UpdateInstance(InstanceMeta meta)
+    {
+        Moderators = new(meta.Moderators);
+        BannedUsers = new(meta.BannedUsers);
+        SocketConnectedUsers = new(meta.ConnectedUsers);
     }
 
     private void UpdatePlayerList()
@@ -153,10 +164,99 @@ public class HypernexInstance
             else
                 UpdatePlayerList();
         };
+        OnMessage += (userId, meta, messageChannel) =>
+        {
+            if (meta.TypeOfData == typeof(WarnPlayer))
+            {
+                if (Moderators.Contains(userId))
+                {
+                    WarnPlayer o = (WarnPlayer) Convert.ChangeType(meta.Data, typeof(WarnPlayer));
+                    WarnPlayer warnPlayer = new WarnPlayer
+                    {
+                        targetUserId = o.targetUserId,
+                        message = o.message
+                    };
+                    ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
+                    if (c == null)
+                        return;
+                    SendMessageToClient(c, Msg.Serialize(warnPlayer));
+                }
+            }
+            else if (meta.TypeOfData == typeof(KickPlayer))
+            {
+                if (Moderators.Contains(userId))
+                {
+                    KickPlayer o = (KickPlayer) Convert.ChangeType(meta.Data, typeof(KickPlayer));
+                    KickPlayer kickPlayer = new KickPlayer
+                    {
+                        targetUserId = o.targetUserId,
+                        message = o.message
+                    };
+                    ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
+                    if (c == null)
+                        return;
+                    BanUser(c, Msg.Serialize(kickPlayer));
+                }
+            }
+            else if (meta.TypeOfData == typeof(BanPlayer))
+            {
+                if (Moderators.Contains(userId))
+                {
+                    BanPlayer o = (BanPlayer) Convert.ChangeType(meta.Data, typeof(BanPlayer));
+                    BanPlayer banPlayer = new BanPlayer
+                    {
+                        targetUserId = o.targetUserId,
+                        message = o.message
+                    };
+                    ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
+                    if (c == null)
+                        return;
+                    BanUser(c, Msg.Serialize(banPlayer));
+                }
+            }
+        };
+    }
+
+    public ClientIdentifier GetClientIdentifierFromUserId(string userid)
+    {
+        foreach (KeyValuePair<ClientIdentifier,JoinAuth> keyValuePair in AuthedUsers)
+        {
+            if (keyValuePair.Value.UserId == userid)
+                return keyValuePair.Key;
+        }
+        return null;
+    }
+
+    public string GetUserIdFromClientIdentifier(ClientIdentifier clientIdentifier)
+    {
+        foreach (KeyValuePair<ClientIdentifier,JoinAuth> keyValuePair in AuthedUsers)
+        {
+            if (keyValuePair.Key.Compare(clientIdentifier))
+                return keyValuePair.Value.UserId;
+        }
+        return String.Empty;
     }
 
     public void StartServer() => _server.Create();
     public void StopServer() => _server.Stop();
+
+    public void KickUser(ClientIdentifier client, byte[] optionalMessage = null)
+    {
+        string uid = GetUserIdFromClientIdentifier(client);
+        if (string.IsNullOrEmpty(uid))
+            return;
+        _hypernexSocketServer.GameServerSocket.KickUser(_instanceMeta.InstanceId, uid);
+        _server.KickClient(client, optionalMessage);
+    }
+
+    public void BanUser(ClientIdentifier client, byte[] optionalMessage = null)
+    {
+        string uid = GetUserIdFromClientIdentifier(client);
+        if (string.IsNullOrEmpty(uid) || Moderators.Contains(uid))
+            return;
+        _hypernexSocketServer.GameServerSocket.BanUser(_instanceMeta.InstanceId, uid);
+        _server.KickClient(client, optionalMessage);
+    }
 
     public void SendMessageToClient(ClientIdentifier identifier, byte[] message,
         MessageChannel messageChannel = MessageChannel.Reliable) =>
@@ -168,4 +268,6 @@ public class HypernexInstance
     public void BroadcastMessageWithExclusion(ClientIdentifier excludingIdentifier, byte[] message,
         MessageChannel messageChannel = MessageChannel.Reliable) =>
         _server.BroadcastMessage(message, messageChannel, excludingIdentifier);
+
+    public override string ToString() => $"Id: {_instanceMeta.InstanceId}, Players: {SocketConnectedUsers}";
 }

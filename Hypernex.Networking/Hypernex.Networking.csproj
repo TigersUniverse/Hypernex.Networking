@@ -48,16 +48,19 @@
         <Compile Include="HypernexInstanceClient.cs" />
         <Compile Include="HypernexInstance.cs" />
         <Compile Include="HypernexSocketServer.cs" />
+        <Compile Include="Messages\BanPlayer.cs" />
         <Compile Include="Messages\Data\float2.cs" />
         <Compile Include="Messages\Data\float3.cs" />
         <Compile Include="Messages\Data\float4.cs" />
         <Compile Include="Messages\Data\NetworkedObject.cs" />
         <Compile Include="Messages\InstancePlayers.cs" />
         <Compile Include="Messages\JoinAuth.cs" />
+        <Compile Include="Messages\KickPlayer.cs" />
         <Compile Include="Messages\PlayerMessage.cs" />
         <Compile Include="Messages\PlayerUpdate.cs" />
         <Compile Include="Messages\PlayerVoice.cs" />
         <Compile Include="Messages\NetworkedEvent.cs" />
+        <Compile Include="Messages\WarnPlayer.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="SafeMessage.cs" />
     </ItemGroup>

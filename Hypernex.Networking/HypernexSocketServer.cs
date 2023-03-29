@@ -67,6 +67,23 @@ public class HypernexSocketServer
                     TemporaryInstances.Remove(selectedGameServer.instanceMeta.TemporaryId);
                     _instances.Add(instance);
                     instance.StartServer();
+                    instance.UpdateInstance(selectedGameServer.instanceMeta);
+                    break;
+                }
+                case "notselectedgameserver":
+                {
+                    NotSelectedGameServer notSelectedGameServer =
+                        GameServerSocket.TryParseData<NotSelectedGameServer>(response);
+                    if (TemporaryInstances.ContainsKey(notSelectedGameServer.TemporaryId))
+                        TemporaryInstances.Remove(notSelectedGameServer.TemporaryId);
+                    break;
+                }
+                case "updatedinstance":
+                {
+                    UpdatedInstance updatedInstance = GameServerSocket.TryParseData<UpdatedInstance>(response);
+                    HypernexInstance instance = GetInstanceById(updatedInstance.instanceMeta.InstanceId);
+                    if(instance != null)
+                        instance.UpdateInstance(updatedInstance.instanceMeta);
                     break;
                 }
                 case "tempusertoken":
