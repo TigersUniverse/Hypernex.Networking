@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hypernex.Networking.Libs;
 using HypernexSharp;
 using HypernexSharp.Socketing;
 using HypernexSharp.Socketing.SocketResponses;
@@ -10,7 +11,7 @@ namespace Hypernex.Networking;
 
 public class HypernexSocketServer
 {
-    private HypernexObject _hypernexObject;
+    internal HypernexObject _hypernexObject;
     private List<HypernexInstance> _instances = new ();
     public List<HypernexInstance> Instances => new (_instances);
     public GameServerSocket GameServerSocket { get; }
@@ -30,9 +31,10 @@ public class HypernexSocketServer
     private HypernexInstance GetInstanceById(string instanceId) =>
         Instances.FirstOrDefault(x => x._instanceMeta.InstanceId == instanceId);
 
-    public HypernexSocketServer(HypernexObject hypernexObject, string globalIp, string gameServerToken = "",
+    public HypernexSocketServer(HypernexObject hypernexObject, string globalIp,
+        Action<(HypernexSocketServer, HypernexInstance, List<NexboxScript>)> OnScripts, string gameServerToken = "",
         string localIp = "0.0.0.0", int beginPortRange = 15000, int endPortRange = 25000, bool useMultithreading = true,
-        int threadUpdateTime = 10, bool useIPV6 = false, Action onOpen = null)
+        int threadUpdateTime = 10, bool useIPV6 = false, Action onOpen = null, Action<HypernexInstance> onStop = null)
     {
         GameServerSocket = hypernexObject.OpenGameServerSocket(gameServerToken);
         GameServerSocket.OnOpen += () => onOpen?.Invoke();
@@ -59,14 +61,16 @@ public class HypernexSocketServer
                 {
                     SelectedGameServer selectedGameServer =
                         GameServerSocket.TryParseData<SelectedGameServer>(response);
+                    int p = TemporaryInstances[selectedGameServer.instanceMeta.TemporaryId];
                     HypernexInstance instance = new HypernexInstance(this, selectedGameServer.instanceMeta,
-                        new ServerSettings(localIp, TemporaryInstances[selectedGameServer.instanceMeta.TemporaryId],
-                            useMultithreading: useMultithreading,
-                            threadUpdateMs: threadUpdateTime,
-                            useIPV6: useIPV6));
+                        new ServerSettings(localIp, p, useMultithreading: useMultithreading,
+                            threadUpdateMs: threadUpdateTime, useIPV6: useIPV6), i =>
+                        {
+                            i.StartServer();
+                            GameServerSocket.InstanceReady(i._instanceMeta.InstanceId, globalIp + ":" + p);
+                        }, tuple => {OnScripts.Invoke((this, tuple.Item1, tuple.Item2));});
                     TemporaryInstances.Remove(selectedGameServer.instanceMeta.TemporaryId);
                     _instances.Add(instance);
-                    instance.StartServer();
                     instance.UpdateInstance(selectedGameServer.instanceMeta);
                     break;
                 }

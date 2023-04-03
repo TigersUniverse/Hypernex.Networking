@@ -1,4 +1,5 @@
 ﻿using Hypernex.Networking;
+using Hypernex.Networking.Libs;
 using Hypernex.Networking.Server;
 using HypernexSharp;
 
@@ -29,7 +30,13 @@ hypernexObject = new HypernexObject(new HypernexSettings
     IsHTTP = ServerConfig.LoadedConfig.IsServerHTTP,
     APIVersion = ServerConfig.LoadedConfig.APIVersion
 });
-hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.LoadedConfig.GlobalIp, 
+hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.LoadedConfig.GlobalIp, scripts =>
+    {
+        foreach (NexboxScript nexboxScript in scripts.Item3)
+        {
+            new ScriptHandler(scripts.Item1, scripts.Item2);
+        }
+    },
     ServerConfig.LoadedConfig.GameServerToken, ServerConfig.LoadedConfig.LocalIp, 
     ServerConfig.LoadedConfig.BeginPortRange, ServerConfig.LoadedConfig.EndPortRange, 
     ServerConfig.LoadedConfig.UseMultithreading, 
@@ -42,6 +49,13 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine("Input help for a list of commands");
         Console.ForegroundColor = ConsoleColor.White;
+    }, instance =>
+    {
+        foreach (ScriptHandler scriptHandler in new List<ScriptHandler>(ScriptHandler.Instances))
+        {
+            if (scriptHandler.Compare(instance))
+                scriptHandler.Stop();
+        }
     });
 HandleCommand(Console.ReadLine() ?? String.Empty);
 hypernexObject.CloseGameServerSocket();

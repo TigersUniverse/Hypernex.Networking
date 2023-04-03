@@ -19,6 +19,13 @@
       <Reference Include="HypernexSharp">
         <HintPath>..\Hypernex.Networking\Libs\HypernexSharp.dll</HintPath>
       </Reference>
+      <Reference Include="Nexbox.60">
+        <HintPath>Libs\Nexbox.60.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="SandboxedClasses" />
     </ItemGroup>
 
 </Project>

@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using Hypernex.Networking.Libs;
 using Hypernex.Networking.Messages;
+using HypernexSharp;
+using HypernexSharp.APIObjects;
 using HypernexSharp.Socketing.SocketResponses;
 using HypernexSharp.SocketObjects;
 using Nexport;
@@ -27,6 +31,8 @@ public class HypernexInstance
     private HypernexSocketServer _hypernexSocketServer;
     private Server _server;
     private Dictionary<ClientIdentifier, JoinAuth> AuthedUsers = new();
+    private WorldMeta _worldMeta;
+    private Action<HypernexInstance> onStop;
 
     private ServerSettings GetServerSettings(ServerSettings settings) => new(settings.Ip,
         settings.Port, true, settings.UseMultithreading,
@@ -49,8 +55,56 @@ public class HypernexInstance
         }
     };
 
+    private void ForceGetWorldMeta(string worldId, HypernexObject hypernexObject, Action<WorldMeta> OnGet)
+    {
+        hypernexObject.GetWorldMeta(result =>
+        {
+            if (result.success)
+                OnGet.Invoke(result.result.Meta);
+            else
+                ForceGetWorldMeta(worldId, hypernexObject, OnGet);
+        }, worldId);
+    }
+
+    private NexboxLanguage GetLanguageFromFileName(string fileName)
+    {
+        string[] s = fileName.Split('.');
+        switch (s.Last().ToLower())
+        {
+            case "js":
+                return NexboxLanguage.JavaScript;
+            case "lua":
+                return NexboxLanguage.Lua;
+        }
+        return NexboxLanguage.Unknown;
+    }
+
+    private void ForceGetAllScripts(List<string> scriptsToGet, List<NexboxScript> scriptsReceived, Action<List<NexboxScript>> OnDone)
+    {
+        _hypernexSocketServer.GameServerSocket.GetServerScript((fileName, stream) =>
+        {
+            if (stream != Stream.Null)
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string script = reader.ReadToEnd();
+                    NexboxScript nexboxScript = new NexboxScript(GetLanguageFromFileName(fileName), script);
+                    scriptsReceived.Add(nexboxScript);
+                    scriptsToGet.Remove(scriptsToGet.ElementAt(0));
+                    if(scriptsToGet.Count <= 0)
+                        OnDone.Invoke(scriptsReceived);
+                    else
+                        ForceGetAllScripts(scriptsToGet, scriptsReceived, OnDone);
+                }
+            }
+            else
+                ForceGetAllScripts(scriptsToGet, scriptsReceived, OnDone);
+        }, _worldMeta.OwnerId, scriptsToGet.ElementAt(0));
+    }
+
     public HypernexInstance(HypernexSocketServer hypernexSocketServer, InstanceMeta instanceMeta,
-        ServerSettings Settings)
+        ServerSettings Settings, Action<HypernexInstance> initializedWorld,
+        Action<(HypernexInstance,List<NexboxScript>)> scriptHandler, Action<HypernexInstance> OnStop = null)
     {
         ServerSettings settings = GetServerSettings(Settings);
         switch (instanceMeta.InstanceProtocol)
@@ -68,10 +122,21 @@ public class HypernexInstance
                 _server = Instantiator.InstantiateServer(TransportType.KCP, settings);
                 break;
         }
+        onStop = OnStop;
         RegisterEvents();
         _serverSettings = settings;
         _instanceMeta = instanceMeta;
         _hypernexSocketServer = hypernexSocketServer;
+        ForceGetWorldMeta(instanceMeta.WorldId, hypernexSocketServer._hypernexObject, worldMeta =>
+        {
+            _worldMeta = worldMeta;
+            ForceGetAllScripts(new List<string>(worldMeta.ServerScripts), new List<NexboxScript>(),
+                scripts =>
+                {
+                    scriptHandler.Invoke((this, scripts));
+                    initializedWorld.Invoke(this);
+                });
+        });
     }
 
     internal void UpdateInstance(InstanceMeta meta)
@@ -159,7 +224,7 @@ public class HypernexInstance
             if (AuthedUsers.Count <= 0)
             {
                 _hypernexSocketServer.GameServerSocket.RemoveInstance(_instanceMeta.InstanceId);
-                _server.Stop();
+                StopServer();
             }
             else
                 UpdatePlayerList();
@@ -238,7 +303,12 @@ public class HypernexInstance
     }
 
     public void StartServer() => _server.Create();
-    public void StopServer() => _server.Stop();
+
+    public void StopServer()
+    {
+        _server.Stop();
+        onStop?.Invoke(this);
+    }
 
     public void KickUser(ClientIdentifier client, byte[] optionalMessage = null)
     {
