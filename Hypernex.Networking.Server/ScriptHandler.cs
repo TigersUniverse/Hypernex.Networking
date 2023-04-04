@@ -1,14 +1,21 @@
 ﻿using System.Collections.ObjectModel;
 using Hypernex.Networking.Libs;
+using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Data;
+using Hypernex.Networking.Server.SandboxedClasses;
 using Nexbox;
 using Nexbox.Interpreters;
+using Nexport;
 
 namespace Hypernex.Networking.Server;
 
 public class ScriptHandler
 {
     internal static readonly List<ScriptHandler> Instances = new();
+    
+    internal HypernexSocketServer Server;
+    internal HypernexInstance Instance;
+    internal readonly ScriptEvents Events = new ();
 
     private static readonly ReadOnlyDictionary<string, object> GlobalsToForward =
         new(new Dictionary<string, object>
@@ -20,21 +27,36 @@ public class ScriptHandler
         {
             ["float2"] = typeof(float2),
             ["float3"] = typeof(float3),
-            ["float4"] = typeof(float4)
+            ["float4"] = typeof(float4),
+            ["Http"] = typeof(HTTP),
+            ["WebSocket"] = typeof(ServerWebSocket),
+            ["MessageChannel"] = typeof(MessageChannel),
+            ["ScriptEvent"] = typeof(ScriptEvent)
         });
-    private HypernexSocketServer Server;
-    private HypernexInstance Instance;
     private Dictionary<NexboxScript, IInterpreter> RunningScripts = new();
 
-    public ScriptHandler(HypernexSocketServer socketServer, HypernexInstance instance)
+    internal ScriptHandler(HypernexSocketServer socketServer, HypernexInstance instance)
     {
         Server = socketServer;
         Instance = instance;
+        Instance.OnClientConnect += Events.OnUserJoin;
+        Instance.OnMessage += (userId, meta, channel) =>
+        {
+            if (meta.TypeOfData == typeof(NetworkedEvent))
+            {
+                NetworkedEvent networkedEvent = (NetworkedEvent) Convert.ChangeType(meta.Data, typeof(NetworkedEvent))!;
+                Events.OnUserNetworkEvent.Invoke(userId, networkedEvent.EventName, networkedEvent.Data.ToArray());
+            }
+        };
+        Instance.OnClientDisconnect += Events.OnUserLeave;
         Instances.Add(this);
     }
 
     private void CreateGlobalsForInterpreter(IInterpreter interpreter)
     {
+        interpreter.CreateGlobal("script", this);
+        interpreter.CreateGlobal("Events", Events);
+        interpreter.CreateGlobal("NetworkEvent", new ServerNetworkEvent(this));
         foreach (KeyValuePair<string,object> keyValuePair in GlobalsToForward)
             interpreter.CreateGlobal(keyValuePair.Key, keyValuePair.Value);
     }
@@ -53,7 +75,7 @@ public class ScriptHandler
             Task.Factory.StartNew(() => interpreter.RunScript(script));
     }
 
-    public void LoadAndExecuteScript(NexboxScript script, bool multithread = true)
+    internal void LoadAndExecuteScript(NexboxScript script, bool multithread = true)
     {
         switch (script.Language)
         {
@@ -76,7 +98,7 @@ public class ScriptHandler
         }
     }
 
-    public void Stop()
+    internal void Stop()
     {
         foreach (KeyValuePair<NexboxScript, IInterpreter> keyValuePair in new Dictionary<NexboxScript, IInterpreter>(
                      RunningScripts))
@@ -87,5 +109,5 @@ public class ScriptHandler
         Instances.Remove(this);
     }
 
-    public bool Compare(HypernexInstance instance) => Instance.Equals(instance);
+    internal bool Compare(HypernexInstance instance) => Instance.Equals(instance);
 }

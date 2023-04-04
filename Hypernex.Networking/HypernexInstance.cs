@@ -20,6 +20,7 @@ public class HypernexInstance
     public Action<string, MsgMeta, MessageChannel> OnMessage { get; set; } = (userId, meta, channel) => { };
     public Action<string> OnClientDisconnect { get; set; } = userId => { };
     public bool IsOpen => _server?.IsOpen ?? false;
+    public List<string> ConnectedClients => new (AuthedUsers.Values.Select(x => x.UserId));
 
     internal InstanceMeta _instanceMeta;
     internal ServerSettings _serverSettings;

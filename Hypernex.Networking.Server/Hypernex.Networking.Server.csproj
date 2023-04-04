@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="Samboy063.Tomlet" Version="5.1.2" />
+      <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,10 +23,9 @@
       <Reference Include="Nexbox.60">
         <HintPath>Libs\Nexbox.60.dll</HintPath>
       </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="SandboxedClasses" />
+      <Reference Include="Nexport">
+        <HintPath>..\Hypernex.Networking\Libs\Nexport.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

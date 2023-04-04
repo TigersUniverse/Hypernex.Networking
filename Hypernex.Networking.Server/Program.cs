@@ -34,7 +34,8 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
     {
         foreach (NexboxScript nexboxScript in scripts.Item3)
         {
-            new ScriptHandler(scripts.Item1, scripts.Item2);
+            ScriptHandler s = new ScriptHandler(scripts.Item1, scripts.Item2);
+            s.LoadAndExecuteScript(nexboxScript, ServerConfig.LoadedConfig.UseMultithreading);
         }
     },
     ServerConfig.LoadedConfig.GameServerToken, ServerConfig.LoadedConfig.LocalIp, 
