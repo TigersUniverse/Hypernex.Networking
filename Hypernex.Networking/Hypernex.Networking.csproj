@@ -33,8 +33,14 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="Hypernex.CCK">
+          <HintPath>Libs\Hypernex.CCK.dll</HintPath>
+        </Reference>
         <Reference Include="HypernexSharp">
           <HintPath>Libs\HypernexSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Nexbox">
+          <HintPath>Libs\Nexbox.dll</HintPath>
         </Reference>
         <Reference Include="Nexport">
           <HintPath>Libs\Nexport.dll</HintPath>
@@ -48,8 +54,6 @@
         <Compile Include="HypernexInstanceClient.cs" />
         <Compile Include="HypernexInstance.cs" />
         <Compile Include="HypernexSocketServer.cs" />
-        <Compile Include="Libs\NexboxLanguage.cs" />
-        <Compile Include="Libs\NexboxScript.cs" />
         <Compile Include="Messages\BanPlayer.cs" />
         <Compile Include="Messages\Data\float2.cs" />
         <Compile Include="Messages\Data\float3.cs" />
@@ -62,11 +66,16 @@
         <Compile Include="Messages\PlayerUpdate.cs" />
         <Compile Include="Messages\PlayerVoice.cs" />
         <Compile Include="Messages\NetworkedEvent.cs" />
+        <Compile Include="Messages\RespondAuth.cs" />
         <Compile Include="Messages\WarnPlayer.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="SafeMessage.cs" />
     </ItemGroup>
     <ItemGroup>
+      <Content Include="Libs\Hypernex.CCK.dll" />
+      <Content Include="Libs\HypernexSharp.dll" />
+      <Content Include="Libs\Nexbox.dll" />
+      <Content Include="Libs\Nexport.dll" />
       <Content Include="Messages\Data\README.md" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

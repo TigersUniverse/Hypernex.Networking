@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using Hypernex.Networking.Libs;
+using Hypernex.CCK;
 using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Data;
 using Hypernex.Networking.Server.SandboxedClasses;
@@ -30,6 +30,7 @@ public class ScriptHandler
             ["float4"] = typeof(float4),
             ["Http"] = typeof(HTTP),
             ["WebSocket"] = typeof(ServerWebSocket),
+            ["NetworkEvent"] = typeof(ServerNetworkEvent),
             ["MessageChannel"] = typeof(MessageChannel),
             ["ScriptEvent"] = typeof(ScriptEvent)
         });
@@ -57,6 +58,7 @@ public class ScriptHandler
         interpreter.CreateGlobal("script", this);
         interpreter.CreateGlobal("Events", Events);
         interpreter.CreateGlobal("NetworkEvent", new ServerNetworkEvent(this));
+        interpreter.CreateGlobal("Players", new NetPlayers(Instance));
         foreach (KeyValuePair<string,object> keyValuePair in GlobalsToForward)
             interpreter.CreateGlobal(keyValuePair.Key, keyValuePair.Value);
     }

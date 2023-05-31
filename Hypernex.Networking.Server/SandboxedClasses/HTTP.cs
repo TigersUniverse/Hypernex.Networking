@@ -1,11 +1,9 @@
-﻿using System.Text;
+﻿using System.Net;
 
 namespace Hypernex.Networking.Server.SandboxedClasses;
 
 public class HTTP
 {
-    private readonly HttpClient _client = new HttpClient();
-
     private string MediaTypeToString(HttpMediaType mediaType)
     {
         switch (mediaType)
@@ -24,13 +22,17 @@ public class HTTP
         return MediaTypeToString(HttpMediaType.TextPlain);
     }
 
-    public async Task<string> Get(string url) => await _client.GetStringAsync(url);
-
-    public async Task<string> Post(string url, string data, HttpMediaType mediaType)
+    public string Get(string url)
     {
-        StringContent stringContent = new StringContent(data, Encoding.UTF8, MediaTypeToString(mediaType));
-        HttpResponseMessage response = await _client.PostAsync(url, stringContent);
-        return await response.Content.ReadAsStringAsync();
+        using WebClient webClient = new WebClient();
+        return webClient.DownloadString(url);
+    }
+
+    public string Post(string url, string data, HttpMediaType mediaType)
+    {
+        using WebClient webClient = new WebClient();
+        webClient.Headers[HttpRequestHeader.ContentType] = MediaTypeToString(mediaType);
+        return webClient.UploadString(url, data);
     }
 }
 

@@ -8,7 +8,7 @@ namespace Hypernex.Networking.Messages;
 [Msg]
 public class PlayerVoice
 {
-    [MsgKey(1)] public string MessageId => typeof(PlayerUpdate).FullName;
+    [MsgKey(1)] public string MessageId => typeof(PlayerVoice).FullName;
     [MsgKey(2)] public JoinAuth Auth;
     /// <summary>
     /// Size of each Frame measured in ms (Can be 2.5, 5, 10, 20, 40, or 60)
@@ -30,4 +30,8 @@ public class PlayerVoice
     /// The buffer given after encoding audio
     /// </summary>
     [MsgKey(6)] public byte[] Bytes;
+    /// <summary>
+    /// The length of the encoded audio. May be different than Bytes.Length
+    /// </summary>
+    [MsgKey(7)] public int EncodeLength;
 }

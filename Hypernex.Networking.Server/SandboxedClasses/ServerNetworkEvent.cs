@@ -9,8 +9,8 @@ public class ServerNetworkEvent
 
     internal ServerNetworkEvent(ScriptHandler scriptHandler) => _scriptHandler = scriptHandler;
 
-    public void SendToClient(string userid, string eventName, MessageChannel messageChannel = MessageChannel.Reliable,
-        object[] data = null)
+    public void SendToClient(string userid, string eventName, object[] data = null,
+        MessageChannel messageChannel = MessageChannel.Reliable)
     {
         ClientIdentifier clientIdentifier = _scriptHandler.Instance.GetClientIdentifierFromUserId(userid);
         if (clientIdentifier != null)
@@ -25,8 +25,8 @@ public class ServerNetworkEvent
         }
     }
 
-    public void SendToAllClients(string eventName, MessageChannel messageChannel = MessageChannel.Reliable,
-        object[] data = null)
+    public void SendToAllClients(string eventName, object[] data = null,
+        MessageChannel messageChannel = MessageChannel.Reliable)
     {
         NetworkedEvent networkedEvent = new NetworkedEvent
         {

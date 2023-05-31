@@ -39,4 +39,9 @@ public class PlayerUpdate
     /// parameters, or other extraneous weights.
     /// </summary>
     [MsgKey(7)] public Dictionary<string, float> WeightedObjects;
+    /// <summary>
+    /// A Dictionary containing any extraneous data that cannot be weighted.
+    /// TValue must be serializable/deserializable by MsgPack
+    /// </summary>
+    [MsgKey(8)] public Dictionary<string, object> ExtraneousData;
 }

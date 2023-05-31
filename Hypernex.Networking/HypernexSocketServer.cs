@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hypernex.Networking.Libs;
+using Hypernex.CCK;
 using HypernexSharp;
 using HypernexSharp.Socketing;
 using HypernexSharp.Socketing.SocketResponses;
@@ -11,6 +11,8 @@ namespace Hypernex.Networking;
 
 public class HypernexSocketServer
 {
+    public static Action<HypernexInstance> OnInstance { get; set; } = instance => { };
+
     internal HypernexObject _hypernexObject;
     private List<HypernexInstance> _instances = new ();
     public List<HypernexInstance> Instances => new (_instances);
@@ -67,11 +69,19 @@ public class HypernexSocketServer
                             threadUpdateMs: threadUpdateTime, useIPV6: useIPV6), i =>
                         {
                             i.StartServer();
-                            GameServerSocket.InstanceReady(i._instanceMeta.InstanceId, globalIp + ":" + p);
-                        }, tuple => {OnScripts.Invoke((this, tuple.Item1, tuple.Item2));});
+                        }, tuple =>
+                        {
+                            OnScripts.Invoke((this, tuple.Item1, tuple.Item2));
+                            // Start the game instance AFTER we download and load all scripts
+                            Console.ForegroundColor = ConsoleColor.Gray;
+                            Console.WriteLine("Loaded All Scripts from Instance " + selectedGameServer.instanceMeta.InstanceId);
+                            Console.ForegroundColor = ConsoleColor.White;
+                            GameServerSocket.InstanceReady(tuple.Item1._instanceMeta.InstanceId, globalIp + ":" + p);
+                        });
                     TemporaryInstances.Remove(selectedGameServer.instanceMeta.TemporaryId);
                     _instances.Add(instance);
                     instance.UpdateInstance(selectedGameServer.instanceMeta);
+                    OnInstance.Invoke(instance);
                     break;
                 }
                 case "notselectedgameserver":

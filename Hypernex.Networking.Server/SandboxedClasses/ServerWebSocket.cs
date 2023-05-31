@@ -5,16 +5,16 @@ namespace Hypernex.Networking.Server.SandboxedClasses;
 public class ServerWebSocket
 {
     private WebSocket webSocket;
+
+    public bool IsOpen => webSocket?.IsAlive ?? false;
     
-    public void Create(string url, Delegate OnOpen, Delegate OnMessage, Delegate OnClose, Delegate OnError)
+    public void Create(string url, Delegate OnOpen = null, Delegate OnMessage = null, Delegate OnClose = null, Delegate OnError = null)
     {
-        using (webSocket = new WebSocket(url))
-        {
-            webSocket.OnOpen += (sender, args) => OnOpen.DynamicInvoke();
-            webSocket.OnMessage += (sender, args) => OnOpen.DynamicInvoke(args.Data);
-            webSocket.OnClose += (sender, args) => OnClose.DynamicInvoke();
-            webSocket.OnError += (sender, args) => OnError.DynamicInvoke();
-        }
+        webSocket = new WebSocket(url);
+        webSocket.OnOpen += (sender, args) => OnOpen?.DynamicInvoke();
+        webSocket.OnMessage += (sender, args) => OnMessage?.DynamicInvoke(args.Data);
+        webSocket.OnClose += (sender, args) => OnClose?.DynamicInvoke();
+        webSocket.OnError += (sender, args) => OnError?.DynamicInvoke();
     }
 
     public void Open() => webSocket.Connect();

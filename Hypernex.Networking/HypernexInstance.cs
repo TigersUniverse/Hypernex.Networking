@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Hypernex.Networking.Libs;
+using Hypernex.CCK;
 using Hypernex.Networking.Messages;
 using HypernexSharp;
 using HypernexSharp.APIObjects;
@@ -34,11 +34,13 @@ public class HypernexInstance
     private Dictionary<ClientIdentifier, JoinAuth> AuthedUsers = new();
     private WorldMeta _worldMeta;
     private Action<HypernexInstance> onStop;
+    private int loadedScripts;
 
     private ServerSettings GetServerSettings(ServerSettings settings) => new(settings.Ip,
         settings.Port, true, settings.UseMultithreading,
         settings.ThreadUpdate, settings.UseIPV6)
     {
+        // TODO: msg is null
         ValidateMessage = (identifier, meta, result) =>
         {
             (bool, JoinAuth) msg = SafeMessage.TryGetMessage<JoinAuth>(meta.RawData);
@@ -48,8 +50,18 @@ public class HypernexInstance
                     ValidTokens.Count(x => x.userId == msg.Item2.UserId && x.tempUserToken == msg.Item2.TempToken) >
                     0 && !BannedUsers.Contains(msg.Item2.UserId);
                 if (v)
+                {
                     AuthedUsers.Add(identifier, msg.Item2);
+                    RespondAuth respondAuth = new RespondAuth
+                    {
+                        UserId = msg.Item2.UserId,
+                        GameServerId = _instanceMeta.GameServerId,
+                        InstanceId = _instanceMeta.InstanceId
+                    };
+                    SendMessageToClient(identifier, Msg.Serialize(respondAuth));
+                }
                 result.Invoke(v);
+                return;
             }
             result.Invoke(false);
             _hypernexSocketServer.GameServerSocket.KickUser(_instanceMeta.InstanceId, msg.Item2.UserId);
@@ -82,6 +94,11 @@ public class HypernexInstance
 
     private void ForceGetAllScripts(List<string> scriptsToGet, List<NexboxScript> scriptsReceived, Action<List<NexboxScript>> OnDone)
     {
+        Uri u = new Uri(scriptsToGet.ElementAt(0));
+        string p = u.AbsolutePath;
+        if (p.Last() == '/')
+            p = p.Remove(p.Length - 1);
+        string f = p.Split('/').Last();
         _hypernexSocketServer.GameServerSocket.GetServerScript((fileName, stream) =>
         {
             if (stream != Stream.Null)
@@ -91,8 +108,9 @@ public class HypernexInstance
                     string script = reader.ReadToEnd();
                     NexboxScript nexboxScript = new NexboxScript(GetLanguageFromFileName(fileName), script);
                     scriptsReceived.Add(nexboxScript);
-                    scriptsToGet.Remove(scriptsToGet.ElementAt(0));
-                    if(scriptsToGet.Count <= 0)
+                    scriptsToGet.RemoveAt(0);
+                    loadedScripts++;
+                    if (scriptsToGet.Count <= 0)
                         OnDone.Invoke(scriptsReceived);
                     else
                         ForceGetAllScripts(scriptsToGet, scriptsReceived, OnDone);
@@ -100,7 +118,7 @@ public class HypernexInstance
             }
             else
                 ForceGetAllScripts(scriptsToGet, scriptsReceived, OnDone);
-        }, _worldMeta.OwnerId, scriptsToGet.ElementAt(0));
+        }, _worldMeta.OwnerId, f);
     }
 
     public HypernexInstance(HypernexSocketServer hypernexSocketServer, InstanceMeta instanceMeta,
@@ -131,12 +149,27 @@ public class HypernexInstance
         ForceGetWorldMeta(instanceMeta.WorldId, hypernexSocketServer._hypernexObject, worldMeta =>
         {
             _worldMeta = worldMeta;
-            ForceGetAllScripts(new List<string>(worldMeta.ServerScripts), new List<NexboxScript>(),
-                scripts =>
-                {
-                    scriptHandler.Invoke((this, scripts));
-                    initializedWorld.Invoke(this);
-                });
+            Builds targetBuild = null;
+            foreach (Builds worldMetaBuild in worldMeta.Builds)
+            {
+                if (worldMetaBuild.BuildPlatform != BuildPlatform.Windows) continue;
+                targetBuild = worldMetaBuild;
+                break;
+            }
+            if (targetBuild == null && _worldMeta.Builds.Count > 0)
+                targetBuild = _worldMeta.Builds[0];
+            if(targetBuild != null && targetBuild.ServerScripts.Count > 0)
+                ForceGetAllScripts(new List<string>(targetBuild.ServerScripts), new List<NexboxScript>(),
+                    scripts =>
+                    {
+                        scriptHandler.Invoke((this, scripts));
+                        initializedWorld.Invoke(this);
+                    });
+            else
+            {
+                scriptHandler.Invoke((this, new List<NexboxScript>()));
+                initializedWorld.Invoke(this);
+            }
         });
     }
 
@@ -217,9 +250,9 @@ public class HypernexInstance
                 {
                     ValidTokens.Remove(ValidTokens.FirstOrDefault(x => x.userId == keyValuePair.Value.UserId));
                     userid = keyValuePair.Value.UserId;
+                    AuthedUsers.Remove(keyValuePair.Key);
                 }
             }
-            AuthedUsers.Remove(AuthedUsers.FirstOrDefault(x => x.Key.Identifier == identifier.Identifier).Key);
             if(!string.IsNullOrEmpty(userid))
                 OnClientDisconnect.Invoke(userid);
             if (AuthedUsers.Count <= 0)
@@ -261,7 +294,7 @@ public class HypernexInstance
                     ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
                     if (c == null)
                         return;
-                    BanUser(c, Msg.Serialize(kickPlayer));
+                    KickUser(c, Msg.Serialize(kickPlayer));
                 }
             }
             else if (meta.TypeOfData == typeof(BanPlayer))
@@ -339,6 +372,20 @@ public class HypernexInstance
     public void BroadcastMessageWithExclusion(ClientIdentifier excludingIdentifier, byte[] message,
         MessageChannel messageChannel = MessageChannel.Reliable) =>
         _server.BroadcastMessage(message, messageChannel, excludingIdentifier);
+    
+    private string GetListAsString<T>(List<T> l)
+    {
+        string g = String.Empty;
+        foreach (T t in l)
+            g += t + " ";
+        return g;
+    }
 
-    public override string ToString() => $"Id: {_instanceMeta.InstanceId}, Players: {SocketConnectedUsers}";
+#if DEBUG
+    public override string ToString() =>
+        $"Id: {_instanceMeta.InstanceId}, SocketPlayers: {GetListAsString(SocketConnectedUsers)}, Players: {GetListAsString(_server?.ConnectedClients)} LoadedScripts: {loadedScripts}";
+#else
+    public override string ToString() =>
+        $"Id: {_instanceMeta.InstanceId}, Players: {GetListAsString(SocketConnectedUsers)}, LoadedScripts: {loadedScripts}";
+#endif
 }

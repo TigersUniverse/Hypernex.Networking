@@ -1,10 +1,12 @@
-﻿using Hypernex.Networking;
-using Hypernex.Networking.Libs;
+﻿using Hypernex.CCK;
+using Hypernex.Networking;
 using Hypernex.Networking.Server;
 using HypernexSharp;
+using Nexport;
 
 HypernexObject hypernexObject;
 HypernexSocketServer hypernexSocketServer;
+bool end = false;
 
 Console.WriteLine("Hypernex GameServer");
 Console.WriteLine("-------------------");
@@ -22,6 +24,18 @@ if (!ServerConfig.LoadConfig())
     return;
 }
 Console.WriteLine("Loaded Config!");
+
+Console.WriteLine("Registering Events...");
+HypernexSocketServer.OnInstance += instance =>
+{
+    instance.OnMessage += (id, meta, channel) =>
+    {
+        ClientIdentifier clientIdentifier = instance.GetClientIdentifierFromUserId(id);
+        if (clientIdentifier != null)
+            MessageHandler.HandleMessage(instance, meta, channel, clientIdentifier);
+    };
+};
+Console.WriteLine("Registered Events!");
 
 Console.WriteLine("Creating Connection to Master Server...");
 hypernexObject = new HypernexObject(new HypernexSettings
@@ -57,6 +71,7 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
             if (scriptHandler.Compare(instance))
                 scriptHandler.Stop();
         }
+        end = true;
     });
 HandleCommand(Console.ReadLine() ?? String.Empty);
 hypernexObject.CloseGameServerSocket();
@@ -69,7 +84,6 @@ const string COMMANDS = "instances - Gets a list of all open instances\n" +
 
 void HandleCommand(string input)
 {
-    bool end = false;
     string[] s = input.Split(" ");
     if(s.Length <= 0)
         HandleCommand(Console.ReadLine() ?? String.Empty);

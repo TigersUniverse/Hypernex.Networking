@@ -17,14 +17,17 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Reference Include="Hypernex.CCK">
+        <HintPath>..\Hypernex.Networking\Libs\Hypernex.CCK.dll</HintPath>
+      </Reference>
       <Reference Include="HypernexSharp">
         <HintPath>..\Hypernex.Networking\Libs\HypernexSharp.dll</HintPath>
       </Reference>
-      <Reference Include="Nexbox.60">
-        <HintPath>Libs\Nexbox.60.dll</HintPath>
+      <Reference Include="Nexbox">
+        <HintPath>..\Hypernex.Networking\Libs\Nexbox.dll</HintPath>
       </Reference>
       <Reference Include="Nexport">
-        <HintPath>..\Hypernex.Networking\Libs\Nexport.dll</HintPath>
+        <HintPath>Libs\Nexport.dll</HintPath>
       </Reference>
     </ItemGroup>
 
