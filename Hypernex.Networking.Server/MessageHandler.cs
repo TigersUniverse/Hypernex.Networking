@@ -32,12 +32,21 @@ public static class MessageHandler
         }
     }
 
-    private static class PlayerHandler
+    internal static class PlayerHandler
     {
+        internal static Dictionary<string, PlayerUpdate> PlayerUpdates => new (_playerUpdates);
+        private static Dictionary<string, PlayerUpdate> _playerUpdates = new ();
+
         public static void HandlePlayerUpdate(HypernexInstance instance, PlayerUpdate playerUpdate, ClientIdentifier from)
         {
             playerUpdate.Auth.TempToken = String.Empty;
             instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerUpdate), MessageChannel.Unreliable);
+            if (_playerUpdates.ContainsKey(playerUpdate.Auth.UserId))
+            {
+                _playerUpdates[playerUpdate.Auth.UserId] = playerUpdate;
+                return;
+            }
+            _playerUpdates.Add(playerUpdate.Auth.UserId, playerUpdate);
         }
 
         public static void HandlePlayerVoice(HypernexInstance instance, PlayerVoice playerVoice, ClientIdentifier from)

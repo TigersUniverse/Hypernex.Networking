@@ -40,7 +40,6 @@ public class HypernexInstance
         settings.Port, true, settings.UseMultithreading,
         settings.ThreadUpdate, settings.UseIPV6)
     {
-        // TODO: msg is null
         ValidateMessage = (identifier, meta, result) =>
         {
             (bool, JoinAuth) msg = SafeMessage.TryGetMessage<JoinAuth>(meta.RawData);
@@ -52,13 +51,6 @@ public class HypernexInstance
                 if (v)
                 {
                     AuthedUsers.Add(identifier, msg.Item2);
-                    RespondAuth respondAuth = new RespondAuth
-                    {
-                        UserId = msg.Item2.UserId,
-                        GameServerId = _instanceMeta.GameServerId,
-                        InstanceId = _instanceMeta.InstanceId
-                    };
-                    SendMessageToClient(identifier, Msg.Serialize(respondAuth));
                 }
                 result.Invoke(v);
                 return;
@@ -200,6 +192,13 @@ public class HypernexInstance
                     ValidTokens.Remove(ValidTokens.FirstOrDefault(x => x.userId == keyValuePair.Value.UserId));
                     OnClientConnect.Invoke(keyValuePair.Value.UserId);
                     UpdatePlayerList();
+                    RespondAuth respondAuth = new RespondAuth
+                    {
+                        UserId = keyValuePair.Value.UserId,
+                        GameServerId = _instanceMeta.GameServerId,
+                        InstanceId = _instanceMeta.InstanceId
+                    };
+                    SendMessageToClient(identifier, Msg.Serialize(respondAuth));
                     break;
                 }
             }
@@ -213,7 +212,7 @@ public class HypernexInstance
                 {
                     if (fieldInfo.FieldType == typeof(JoinAuth))
                     {
-                        JoinAuth joinAuth = (JoinAuth) Convert.ChangeType(fieldInfo, typeof(JoinAuth));
+                        JoinAuth joinAuth = (JoinAuth) Convert.ChangeType(fieldInfo.GetValue(meta.Data), typeof(JoinAuth));
                         if (!didInvoke && AuthedUsers.Count(x =>
                                 x.Value.UserId == joinAuth.UserId && x.Value.TempToken == joinAuth.TempToken) > 0)
                         {
@@ -228,7 +227,7 @@ public class HypernexInstance
                     {
                         if (propertyInfo.PropertyType == typeof(JoinAuth))
                         {
-                            JoinAuth joinAuth = (JoinAuth) Convert.ChangeType(propertyInfo, typeof(JoinAuth));
+                            JoinAuth joinAuth = (JoinAuth) Convert.ChangeType(propertyInfo.GetValue(meta.Data), typeof(JoinAuth));
                             if (!didInvoke && AuthedUsers.Count(x =>
                                     x.Value.UserId == joinAuth.UserId && x.Value.TempToken == joinAuth.TempToken) > 0)
                             {
@@ -246,16 +245,22 @@ public class HypernexInstance
             string userid = String.Empty;
             foreach (KeyValuePair<ClientIdentifier,JoinAuth> keyValuePair in new List<KeyValuePair<ClientIdentifier, JoinAuth>>(AuthedUsers))
             {
-                if (keyValuePair.Key.Identifier == identifier.Identifier)
+                if (!keyValuePair.Key.Compare(identifier)) continue;
+                userid = keyValuePair.Value.UserId;
+                AuthedUsers.Remove(keyValuePair.Key);
+                _hypernexSocketServer.GameServerSocket.KickUser(_instanceMeta.InstanceId,
+                    keyValuePair.Value.UserId);
+            }
+            if (!string.IsNullOrEmpty(userid))
+            {
+                OnClientDisconnect.Invoke(userid);
+                foreach (TempUserToken tempUserToken in new List<TempUserToken>(ValidTokens))
                 {
-                    ValidTokens.Remove(ValidTokens.FirstOrDefault(x => x.userId == keyValuePair.Value.UserId));
-                    userid = keyValuePair.Value.UserId;
-                    AuthedUsers.Remove(keyValuePair.Key);
+                    if (tempUserToken.userId == userid)
+                        ValidTokens.Remove(tempUserToken);
                 }
             }
-            if(!string.IsNullOrEmpty(userid))
-                OnClientDisconnect.Invoke(userid);
-            if (AuthedUsers.Count <= 0)
+            if (_server.ConnectedClients.Count <= 0)
             {
                 _hypernexSocketServer.GameServerSocket.RemoveInstance(_instanceMeta.InstanceId);
                 StopServer();
@@ -340,7 +345,9 @@ public class HypernexInstance
 
     public void StopServer()
     {
-        _server.Stop();
+        AuthedUsers.Clear();
+        ValidTokens.Clear();
+        _server?.Stop();
         onStop?.Invoke(this);
     }
 
@@ -383,9 +390,9 @@ public class HypernexInstance
 
 #if DEBUG
     public override string ToString() =>
-        $"Id: {_instanceMeta.InstanceId}, SocketPlayers: {GetListAsString(SocketConnectedUsers)}, Players: {GetListAsString(_server?.ConnectedClients)} LoadedScripts: {loadedScripts}";
+        $"Id: {_instanceMeta.InstanceId}, SocketPlayers: [{GetListAsString(SocketConnectedUsers)}], Players: [{GetListAsString(_server?.ConnectedClients)}] LoadedScripts: {loadedScripts}";
 #else
     public override string ToString() =>
-        $"Id: {_instanceMeta.InstanceId}, Players: {GetListAsString(SocketConnectedUsers)}, LoadedScripts: {loadedScripts}";
+        $"Id: {_instanceMeta.InstanceId}, Players: [{GetListAsString(SocketConnectedUsers)}], LoadedScripts: {loadedScripts}";
 #endif
 }

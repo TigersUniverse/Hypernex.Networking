@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using Hypernex.CCK;
+﻿using Hypernex.CCK;
 using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Data;
 using Hypernex.Networking.Server.SandboxedClasses;
@@ -17,23 +16,25 @@ public class ScriptHandler
     internal HypernexInstance Instance;
     internal readonly ScriptEvents Events = new ();
 
-    private static readonly ReadOnlyDictionary<string, object> GlobalsToForward =
-        new(new Dictionary<string, object>
-        {
-            
-        });
-    private static readonly ReadOnlyDictionary<string, Type> TypesToForward = new(
-        new Dictionary<string, Type>
-        {
-            ["float2"] = typeof(float2),
-            ["float3"] = typeof(float3),
-            ["float4"] = typeof(float4),
-            ["Http"] = typeof(HTTP),
-            ["WebSocket"] = typeof(ServerWebSocket),
-            ["NetworkEvent"] = typeof(ServerNetworkEvent),
-            ["MessageChannel"] = typeof(MessageChannel),
-            ["ScriptEvent"] = typeof(ScriptEvent)
-        });
+    private static readonly Dictionary<string, object> GlobalsToForward = new Dictionary<string, object>
+    {
+
+    };
+
+    private static readonly Dictionary<string, Type> TypesToForward = new Dictionary<string, Type>
+    {
+        ["float2"] = typeof(float2),
+        ["float3"] = typeof(float3),
+        ["float4"] = typeof(float4),
+        ["Http"] = typeof(HTTP),
+        ["WebSocket"] = typeof(ServerWebSocket),
+        ["NetworkEvent"] = typeof(ServerNetworkEvent),
+        ["MessageChannel"] = typeof(MessageChannel),
+        ["ScriptEvent"] = typeof(ScriptEvent),
+        ["OfflineNetworkedObject"] = typeof(OfflineNetworkedObject),
+        ["NetPlayer"] = typeof(NetPlayer)
+    };
+    
     private Dictionary<NexboxScript, IInterpreter> RunningScripts = new();
 
     internal ScriptHandler(HypernexSocketServer socketServer, HypernexInstance instance)
@@ -55,7 +56,6 @@ public class ScriptHandler
 
     private void CreateGlobalsForInterpreter(IInterpreter interpreter)
     {
-        interpreter.CreateGlobal("script", this);
         interpreter.CreateGlobal("Events", Events);
         interpreter.CreateGlobal("NetworkEvent", new ServerNetworkEvent(this));
         interpreter.CreateGlobal("Players", new NetPlayers(Instance));

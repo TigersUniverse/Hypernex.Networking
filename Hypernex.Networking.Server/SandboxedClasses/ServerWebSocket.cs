@@ -1,4 +1,5 @@
-﻿using WebSocketSharp;
+﻿using Nexbox;
+using WebSocketSharp;
 
 namespace Hypernex.Networking.Server.SandboxedClasses;
 
@@ -8,13 +9,18 @@ public class ServerWebSocket
 
     public bool IsOpen => webSocket?.IsAlive ?? false;
     
-    public void Create(string url, Delegate OnOpen = null, Delegate OnMessage = null, Delegate OnClose = null, Delegate OnError = null)
+    public void Create(string url, SandboxFunc OnOpen = null, SandboxFunc OnMessage = null, SandboxFunc OnClose = null, SandboxFunc OnError = null)
     {
         webSocket = new WebSocket(url);
-        webSocket.OnOpen += (sender, args) => OnOpen?.DynamicInvoke();
-        webSocket.OnMessage += (sender, args) => OnMessage?.DynamicInvoke(args.Data);
-        webSocket.OnClose += (sender, args) => OnClose?.DynamicInvoke();
-        webSocket.OnError += (sender, args) => OnError?.DynamicInvoke();
+        if (OnOpen != null)
+            webSocket.OnOpen += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(OnOpen);
+        if (OnMessage != null)
+            webSocket.OnMessage += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(OnMessage, args.Data);
+        if (OnClose != null)
+            webSocket.OnClose += (sender, args) =>
+                SandboxFuncTools.InvokeSandboxFunc(OnClose, args.Code, args.Reason, args.WasClean);
+        if (OnError != null)
+            webSocket.OnError += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(OnError, args.Message);
     }
 
     public void Open() => webSocket.Connect();
