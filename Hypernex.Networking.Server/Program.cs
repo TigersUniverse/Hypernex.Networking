@@ -8,24 +8,24 @@ HypernexObject hypernexObject;
 HypernexSocketServer hypernexSocketServer;
 bool end = false;
 
-Console.WriteLine("Hypernex GameServer");
-Console.WriteLine("-------------------");
+ServerLogger logger = new ServerLogger();
+logger.SetLogger();
 
-Console.WriteLine("Loading Config...");
+logger.Log("Hypernex GameServer");
+logger.Log("-------------------");
+
+logger.Log("Loading Config...");
 if (!ServerConfig.LoadConfig())
 {
-    Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("Config has not been set!");
-    Console.ForegroundColor = ConsoleColor.White;
-    Console.WriteLine("Set the config values to your needs at serverconfig.cfg, then run the program again");
-    Console.ForegroundColor = ConsoleColor.Gray;
-    Console.WriteLine("Exiting in 5 seconds...");
+    logger.Warn("Config has not been set!");
+    logger.Warn("Set the config values to your needs at serverconfig.cfg, then run the program again");
+    logger.Log("Exiting in 5 seconds...");
     Thread.Sleep(5000);
     return;
 }
-Console.WriteLine("Loaded Config!");
+logger.Log("Loaded Config!");
 
-Console.WriteLine("Registering Events...");
+logger.Log("Registering Events...");
 HypernexSocketServer.OnInstance += instance =>
 {
     instance.OnMessage += (id, meta, channel) =>
@@ -35,9 +35,9 @@ HypernexSocketServer.OnInstance += instance =>
             MessageHandler.HandleMessage(instance, meta, channel, clientIdentifier);
     };
 };
-Console.WriteLine("Registered Events!");
+logger.Log("Registered Events!");
 
-Console.WriteLine("Creating Connection to Master Server...");
+logger.Log("Creating Connection to Master Server...");
 hypernexObject = new HypernexObject(new HypernexSettings
 {
     TargetDomain = ServerConfig.LoadedConfig.ServerDomain,
@@ -58,12 +58,10 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
     ServerConfig.LoadedConfig.ThreadUpdate, 
     ServerConfig.LoadedConfig.UseIPV6, () =>
     {
-        Console.WriteLine("Connected to Master Server!");
+        logger.Log("Connected to Master Server!");
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("Ready!");
-        Console.ForegroundColor = ConsoleColor.Gray;
-        Console.WriteLine("Input help for a list of commands");
-        Console.ForegroundColor = ConsoleColor.White;
+        logger.Log("Input help for a list of commands");
     }, instance =>
     {
         foreach (ScriptHandler scriptHandler in new List<ScriptHandler>(ScriptHandler.Instances))
@@ -97,7 +95,7 @@ void HandleCommand(string input)
             end = true;
             break;
         case "help":
-            Console.WriteLine(COMMANDS);
+            logger.Log(COMMANDS);
             break;
     }
     if(!end)

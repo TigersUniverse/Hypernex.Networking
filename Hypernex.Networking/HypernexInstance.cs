@@ -134,6 +134,10 @@ public class HypernexInstance
                 break;
         }
         onStop = OnStop;
+        onStop += instance =>
+        {
+            Logger.CurrentLogger.Log("Closed Instance " + instance._instanceMeta.InstanceId);
+        };
         RegisterEvents();
         _serverSettings = settings;
         _instanceMeta = instanceMeta;
@@ -341,13 +345,14 @@ public class HypernexInstance
         return String.Empty;
     }
 
-    public void StartServer() => _server.Create();
+    public void StartServer() => _server.Create(true);
 
     public void StopServer()
     {
         AuthedUsers.Clear();
         ValidTokens.Clear();
         _server?.Stop();
+        _hypernexSocketServer.RemoveInstance(this);
         onStop?.Invoke(this);
     }
 

@@ -114,8 +114,8 @@ public class HypernexInstanceClient
         };
     }
 
-    public void Open() => _client.Create();
-    public void Close() => _client.Close();
+    public void Open() => _client.Create(true);
+    public void Stop() => _client.Stop();
 
     public void SendMessage(byte[] message, MessageChannel messageChannel = MessageChannel.Reliable) =>
         _client.SendMessage(message, messageChannel);

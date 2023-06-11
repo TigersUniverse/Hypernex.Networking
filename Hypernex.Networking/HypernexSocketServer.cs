@@ -18,6 +18,8 @@ public class HypernexSocketServer
     public List<HypernexInstance> Instances => new (_instances);
     public GameServerSocket GameServerSocket { get; }
 
+    internal void RemoveInstance(HypernexInstance instance) => _instances.Remove(instance);
+
     private Dictionary<string, int> TemporaryInstances = new ();
 
     private int GetAvailablePortForInstance(int BeginPortRange, int EndPortRange)
