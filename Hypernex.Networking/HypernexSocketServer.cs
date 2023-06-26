@@ -79,7 +79,7 @@ public class HypernexSocketServer
                             Console.WriteLine("Loaded All Scripts from Instance " + selectedGameServer.instanceMeta.InstanceId);
                             Console.ForegroundColor = ConsoleColor.White;
                             GameServerSocket.InstanceReady(tuple.Item1._instanceMeta.InstanceId, globalIp + ":" + p);
-                        });
+                        }, onStop);
                     TemporaryInstances.Remove(selectedGameServer.instanceMeta.TemporaryId);
                     _instances.Add(instance);
                     instance.UpdateInstance(selectedGameServer.instanceMeta);

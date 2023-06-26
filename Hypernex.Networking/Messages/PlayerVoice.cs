@@ -11,9 +11,9 @@ public class PlayerVoice
     [MsgKey(1)] public string MessageId => typeof(PlayerVoice).FullName;
     [MsgKey(2)] public JoinAuth Auth;
     /// <summary>
-    /// Size of each Frame measured in ms (Can be 2.5, 5, 10, 20, 40, or 60)
+    /// Bitrate of data
     /// </summary>
-    [MsgKey(3)] public double FrameSize;
+    [MsgKey(3)] public int Bitrate;
     /// <summary>
     /// Sample Rate measured in Hz (Can be 48000, 24000, 16000, 12000, or 8000)
     /// </summary>
@@ -29,9 +29,9 @@ public class PlayerVoice
     /// <summary>
     /// The buffer given after encoding audio
     /// </summary>
-    [MsgKey(6)] public byte[] Bytes;
+    [MsgKey(7)] public byte[] Bytes;
     /// <summary>
     /// The length of the encoded audio. May be different than Bytes.Length
     /// </summary>
-    [MsgKey(7)] public int EncodeLength;
+    [MsgKey(8)] public int EncodeLength;
 }

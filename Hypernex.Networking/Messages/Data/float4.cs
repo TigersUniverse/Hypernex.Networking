@@ -26,4 +26,12 @@ public struct float4
         this.z = z;
         this.w = w;
     }
+    
+    public static float4 operator +(float4 x, float4 y) => new float4(x.x + y.x, x.y + y.y, x.z + y.z, x.w + y.w);
+    public static float4 operator -(float4 x, float4 y) => new float4(x.x - y.x, x.y - y.y, x.z - y.z, x.w - y.w);
+    public static float4 operator -(float4 x) => new float4(-x.x, -x.y, -x.z, -x.w);
+    public static float4 operator *(float4 x, float a) => new float4(x.x * a, x.y * a, x.z * a, x.w * a);
+    public static float4 operator /(float4 x, float a) => new float4(x.x / a, x.y / a, x.z * a, x.w * a);
+    public static bool operator ==(float4 x, float4 y) => x.x == y.x && x.y == y.y && x.z == y.z && x.w == y.w;
+    public static bool operator !=(float4 x, float4 y) => !(x == y);
 }

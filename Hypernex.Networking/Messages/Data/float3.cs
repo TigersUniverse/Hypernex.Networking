@@ -23,4 +23,12 @@ public struct float3
         this.y = y;
         this.z = z;
     }
+    
+    public static float3 operator +(float3 x, float3 y) => new float3(x.x + y.x, x.y + y.y, x.z + y.z);
+    public static float3 operator -(float3 x, float3 y) => new float3(x.x - y.x, x.y - y.y, x.z - y.z);
+    public static float3 operator -(float3 x) => new float3(-x.x, -x.y, -x.z);
+    public static float3 operator *(float3 x, float a) => new float3(x.x * a, x.y * a, x.z * a);
+    public static float3 operator /(float3 x, float a) => new float3(x.x / a, x.y / a, x.z * a);
+    public static bool operator ==(float3 x, float3 y) => x.x == y.x && x.y == y.y && x.z == y.z;
+    public static bool operator !=(float3 x, float3 y) => !(x == y);
 }

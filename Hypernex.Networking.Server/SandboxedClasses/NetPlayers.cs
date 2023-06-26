@@ -22,7 +22,7 @@ public class NetPlayers
         foreach (KeyValuePair<string,PlayerUpdate> playerUpdate in MessageHandler.PlayerHandler.PlayerUpdates)
         {
             if (playerUpdate.Key == userid)
-                return new NetPlayer(playerUpdate.Value);
+                return new NetPlayer(_instance, playerUpdate.Value);
         }
         return null;
     }

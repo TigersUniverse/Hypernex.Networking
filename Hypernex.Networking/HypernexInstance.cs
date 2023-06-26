@@ -21,6 +21,7 @@ public class HypernexInstance
     public Action<string> OnClientDisconnect { get; set; } = userId => { };
     public bool IsOpen => _server?.IsOpen ?? false;
     public List<string> ConnectedClients => new (AuthedUsers.Values.Select(x => x.UserId));
+    public string InstanceId => _instanceMeta?.InstanceId ?? String.Empty;
 
     internal InstanceMeta _instanceMeta;
     internal ServerSettings _serverSettings;
@@ -42,21 +43,15 @@ public class HypernexInstance
     {
         ValidateMessage = (identifier, meta, result) =>
         {
-            (bool, JoinAuth) msg = SafeMessage.TryGetMessage<JoinAuth>(meta.RawData);
-            if (msg.Item1)
+            JoinAuth msg = (JoinAuth) Convert.ChangeType(meta.Data, typeof(JoinAuth));
+            bool v =
+                ValidTokens.Count(x => x.userId == msg.UserId && x.tempUserToken == msg.TempToken) >
+                0 && !BannedUsers.Contains(msg.UserId);
+            if (v)
             {
-                bool v =
-                    ValidTokens.Count(x => x.userId == msg.Item2.UserId && x.tempUserToken == msg.Item2.TempToken) >
-                    0 && !BannedUsers.Contains(msg.Item2.UserId);
-                if (v)
-                {
-                    AuthedUsers.Add(identifier, msg.Item2);
-                }
-                result.Invoke(v);
-                return;
+                AuthedUsers.Add(identifier, msg);
             }
-            result.Invoke(false);
-            _hypernexSocketServer.GameServerSocket.KickUser(_instanceMeta.InstanceId, msg.Item2.UserId);
+            result.Invoke(v);
         }
     };
 
@@ -134,10 +129,6 @@ public class HypernexInstance
                 break;
         }
         onStop = OnStop;
-        onStop += instance =>
-        {
-            Logger.CurrentLogger.Log("Closed Instance " + instance._instanceMeta.InstanceId);
-        };
         RegisterEvents();
         _serverSettings = settings;
         _instanceMeta = instanceMeta;
@@ -351,9 +342,9 @@ public class HypernexInstance
     {
         AuthedUsers.Clear();
         ValidTokens.Clear();
+        onStop?.Invoke(this);
         _server?.Stop();
         _hypernexSocketServer.RemoveInstance(this);
-        onStop?.Invoke(this);
     }
 
     public void KickUser(ClientIdentifier client, byte[] optionalMessage = null)

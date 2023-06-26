@@ -1,5 +1,6 @@
 ﻿using Hypernex.CCK;
 using Hypernex.Networking;
+using Hypernex.Networking.Messages;
 using Hypernex.Networking.Server;
 using HypernexSharp;
 using Nexport;
@@ -51,6 +52,24 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
             ScriptHandler s = new ScriptHandler(scripts.Item1, scripts.Item2);
             s.LoadAndExecuteScript(nexboxScript, ServerConfig.LoadedConfig.UseMultithreading);
         }
+
+        scripts.Item2.OnClientConnect += userid =>
+        {
+            Dictionary<string, List<WorldObjectUpdate>> d;
+            if (MessageHandler.ObjectHandler.Objects.ContainsKey(scripts.Item2.InstanceId))
+                d = MessageHandler.ObjectHandler.Objects[scripts.Item2.InstanceId];
+            else
+                return;
+            foreach (WorldObjectUpdate worldObjectUpdate in d.Values.SelectMany(
+                         worldObjectUpdates => worldObjectUpdates))
+            {
+                ClientIdentifier clientIdentifier = scripts.Item2.GetClientIdentifierFromUserId(userid);
+                byte[] msg = Msg.Serialize(worldObjectUpdate);
+                scripts.Item2.SendMessageToClient(clientIdentifier, msg);
+            }
+        };
+        scripts.Item2.OnClientDisconnect += userid =>
+            MessageHandler.ObjectHandler.RemovePlayerFromWorldObjects(scripts.Item2, userid);
     },
     ServerConfig.LoadedConfig.GameServerToken, ServerConfig.LoadedConfig.LocalIp, 
     ServerConfig.LoadedConfig.BeginPortRange, ServerConfig.LoadedConfig.EndPortRange, 
@@ -64,12 +83,14 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
         logger.Log("Input help for a list of commands");
     }, instance =>
     {
+        Logger.CurrentLogger.Log("Closed Instance " + instance.InstanceId);
         foreach (ScriptHandler scriptHandler in new List<ScriptHandler>(ScriptHandler.Instances))
         {
             if (scriptHandler.Compare(instance))
                 scriptHandler.Stop();
         }
-        end = true;
+        MessageHandler.PlayerHandler.RemoveInstanceFromPlayerObjects(instance);
+        MessageHandler.ObjectHandler.RemoveInstanceFromWorldObjects(instance);
     });
 HandleCommand(Console.ReadLine() ?? String.Empty);
 hypernexObject.CloseGameServerSocket();

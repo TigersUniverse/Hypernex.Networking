@@ -11,8 +11,13 @@ public class NetPlayer
     }
 
     private PlayerUpdate playerUpdate;
+    private HypernexInstance instance;
 
-    internal NetPlayer(PlayerUpdate playerUpdate) => this.playerUpdate = playerUpdate;
+    internal NetPlayer(HypernexInstance instance, PlayerUpdate playerUpdate)
+    {
+        this.instance = instance;
+        this.playerUpdate = playerUpdate;
+    }
 
     public bool IsPlayerVR => playerUpdate.IsPlayerVR;
     public string AvatarId => playerUpdate.AvatarId;
@@ -22,7 +27,18 @@ public class NetPlayer
         get
         {
             List<OfflineNetworkedObject> offlineNetworkedObjects = new();
-            foreach (NetworkedObject networkedObject in new List<NetworkedObject>(playerUpdate.TrackedObjects))
+            string instanceId = instance.InstanceId;
+            if(string.IsNullOrEmpty(instanceId))
+                return offlineNetworkedObjects.ToArray();
+            Dictionary<string, Dictionary<string, List<NetworkedObject>>> o = MessageHandler.PlayerHandler
+                .NetworkObjects;
+            if (!o.ContainsKey(instance.InstanceId))
+                return offlineNetworkedObjects.ToArray();
+            Dictionary<string, List<NetworkedObject>> n = o[instanceId];
+            if(!n.ContainsKey(playerUpdate.Auth.UserId))
+                return offlineNetworkedObjects.ToArray();
+            List<NetworkedObject> b = n[playerUpdate.Auth.UserId];
+            foreach (NetworkedObject networkedObject in new List<NetworkedObject>(b))
                 offlineNetworkedObjects.Add(new OfflineNetworkedObject(networkedObject));
             return offlineNetworkedObjects.ToArray();
         }

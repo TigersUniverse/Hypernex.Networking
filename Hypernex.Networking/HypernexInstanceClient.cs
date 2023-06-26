@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hypernex.Networking.Messages;
@@ -13,19 +14,33 @@ namespace Hypernex.Networking;
 public class HypernexInstanceClient
 {
     public Action OnConnect { get; set; } = () => { };
-    public Action<User> OnClientConnect { get; set; } = identifier => { };
+    public Action<User> OnUserLoaded { get; set; } = user => { };
+    public Action<User> OnClientConnect { get; set; } = user => { };
     public Action<MsgMeta, MessageChannel> OnMessage { get; set; } = (meta, channel) => { };
     public Action<User> OnClientDisconnect { get; set; } = identifier => { };
     public Action OnDisconnect { get; set; } = () => { };
     public bool IsOpen => _client?.IsOpen ?? false;
-    public List<User> ConnectedUsers => new (connectedUsers.Values);
+
+    public List<User> ConnectedUsers
+    {
+        get
+        {
+            List<User> knownUsers = new List<User>();
+            foreach (User? connectedUsersValue in new List<User?>(connectedUsers.Values))
+            {
+                if(connectedUsersValue != null)
+                    knownUsers.Add(connectedUsersValue);
+            }
+            return knownUsers;
+        }
+    }
 
     private Client _client;
     private HypernexObject _hypernexObject;
     private User _localUser;
     
     private bool justJoined = true;
-    private Dictionary<ClientIdentifier, User> connectedUsers = new ();
+    private Dictionary<ClientIdentifier, User?> connectedUsers = new ();
 
     public HypernexInstanceClient(HypernexObject hypernexObject, User localUser, InstanceProtocol instanceProtocol, ClientSettings settings)
     {
@@ -57,13 +72,42 @@ public class HypernexInstanceClient
         {
             if (result.success)
             {
-                connectedUsers.Add(clientIdentifier, result.result.UserData);
+                if (!connectedUsers.ContainsKey(clientIdentifier))
+                    return;
+                connectedUsers[clientIdentifier] = result.result.UserData;
                 if(sendEvent)
                     OnClientConnect.Invoke(result.result.UserData);
+                else
+                    OnUserLoaded.Invoke(result.result.UserData);
             }
             else
                 AddUserRecursive(clientIdentifier, userId, t++, sendEvent);
         }, userId, isUserId: true);
+    }
+
+    private void CheckJoinedUsers(InstancePlayers instancePlayers)
+    {
+        foreach (KeyValuePair<ClientIdentifier,string> keyValuePair in instancePlayers.UserIds)
+        {
+            if (connectedUsers.Count(x => x.Key.Compare(keyValuePair.Key)) <= 0)
+            {
+                connectedUsers.Add(keyValuePair.Key, null);
+                AddUserRecursive(keyValuePair.Key, keyValuePair.Value, 0, true);
+            }
+        }
+    }
+
+    private void CheckLeftUsers(InstancePlayers instancePlayers)
+    {
+        foreach (KeyValuePair<ClientIdentifier,User?> keyValuePair in new Dictionary<ClientIdentifier, User?>(connectedUsers))
+        {
+            if (instancePlayers.UserIds.Count(x => x.Key.Compare(keyValuePair.Key)) <= 0)
+            {
+                connectedUsers.Remove(keyValuePair.Key);
+                if(keyValuePair.Value != null)
+                    OnClientDisconnect.Invoke(keyValuePair.Value);
+            }
+        }
     }
 
     private void RegisterEvents()
@@ -73,39 +117,51 @@ public class HypernexInstanceClient
         {
             if (meta.TypeOfData == typeof(InstancePlayers))
             {
-                (bool, InstancePlayers) instancePlayers = SafeMessage.TryGetMessage<InstancePlayers>(meta.RawData);
-                if (instancePlayers.Item1)
+                InstancePlayers instancePlayers =
+                    (InstancePlayers) Convert.ChangeType(meta.Data, typeof(InstancePlayers));
+                if (justJoined)
                 {
-                    if (justJoined)
+                    foreach (KeyValuePair<ClientIdentifier, string> keyValuePair in instancePlayers.UserIds)
                     {
-                        foreach (KeyValuePair<ClientIdentifier,string> keyValuePair in instancePlayers.Item2.UserIds)
-                            AddUserRecursive(keyValuePair.Key, keyValuePair.Value, 0, false);
-                        justJoined = false;
+                        connectedUsers.Add(keyValuePair.Key, null);
+                        AddUserRecursive(keyValuePair.Key, keyValuePair.Value, 0, false);
+                    }
+                    justJoined = false;
+                }
+                else
+                {
+                    if (instancePlayers.UserIds.Count > connectedUsers.Count)
+                    {
+                        // Someone Joined
+                        CheckJoinedUsers(instancePlayers);
+                    }
+                    else if (instancePlayers.UserIds.Count < connectedUsers.Count)
+                    {
+                        // Someone Left
+                        CheckLeftUsers(instancePlayers);
                     }
                     else
                     {
-                        foreach (KeyValuePair<ClientIdentifier,string> keyValuePair in instancePlayers.Item2.UserIds)
-                        {
-                            if(connectedUsers.ContainsKey(keyValuePair.Key))
-                                AddUserRecursive(keyValuePair.Key, keyValuePair.Value, 0, true);
-                        }
+                        // Complete a quick check of both
+                        CheckJoinedUsers(instancePlayers);
+                        CheckLeftUsers(instancePlayers);
                     }
                 }
             }
             else
                 OnMessage.Invoke(meta, channel);
         };
-        _client.OnNetworkedClientDisconnect += identifier =>
+        /*_client.OnNetworkedClientDisconnect += identifier =>
         {
             if (connectedUsers.Count(x => x.Key.Identifier == identifier.Identifier) > 0)
             {
-                User u = connectedUsers.FirstOrDefault(x => x.Key.Identifier == identifier.Identifier).Value;
+                User u = connectedUsers.FirstOrDefault(x => x.Key.Compare(identifier)).Value;
                 if (u.Id == _localUser.Id)
                     return;
                 connectedUsers.Remove(identifier);
                 OnClientDisconnect.Invoke(u);
             }
-        };
+        };*/
         _client.OnDisconnect += () =>
         {
             justJoined = true;
