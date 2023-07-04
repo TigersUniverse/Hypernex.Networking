@@ -336,7 +336,7 @@ public class HypernexInstance
         return String.Empty;
     }
 
-    public void StartServer() => _server.Create(true);
+    public void StartServer() => _server.Create();
 
     public void StopServer()
     {

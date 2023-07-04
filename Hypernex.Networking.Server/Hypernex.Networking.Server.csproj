@@ -23,6 +23,12 @@
       <Reference Include="HypernexSharp">
         <HintPath>..\Hypernex.Networking\Libs\HypernexSharp.dll</HintPath>
       </Reference>
+      <Reference Include="MessagePack">
+        <HintPath>Libs\MessagePack.dll</HintPath>
+      </Reference>
+      <Reference Include="MessagePack.Annotations">
+        <HintPath>Libs\MessagePack.Annotations.dll</HintPath>
+      </Reference>
       <Reference Include="Nexbox">
         <HintPath>..\Hypernex.Networking\Libs\Nexbox.dll</HintPath>
       </Reference>

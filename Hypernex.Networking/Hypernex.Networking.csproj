@@ -39,6 +39,18 @@
         <Reference Include="HypernexSharp">
           <HintPath>Libs\HypernexSharp.dll</HintPath>
         </Reference>
+        <Reference Include="MessagePack">
+          <HintPath>Libs\MessagePack.dll</HintPath>
+        </Reference>
+        <Reference Include="MessagePack.Annotations">
+          <HintPath>Libs\MessagePack.Annotations.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.Bcl.AsyncInterfaces">
+          <HintPath>Libs\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.NET.StringTools">
+          <HintPath>Libs\Microsoft.NET.StringTools.dll</HintPath>
+        </Reference>
         <Reference Include="Nexbox">
           <HintPath>Libs\Nexbox.dll</HintPath>
         </Reference>
@@ -46,8 +58,26 @@
           <HintPath>Libs\Nexport.dll</HintPath>
         </Reference>
         <Reference Include="System" />
+        <Reference Include="System.Buffers">
+          <HintPath>Libs\System.Buffers.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Collections.Immutable">
+          <HintPath>Libs\System.Collections.Immutable.dll</HintPath>
+        </Reference>
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
+        <Reference Include="System.Memory">
+          <HintPath>Libs\System.Memory.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Numerics.Vectors">
+          <HintPath>Libs\System.Numerics.Vectors.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Runtime.CompilerServices.Unsafe">
+          <HintPath>Libs\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Threading.Tasks.Extensions">
+          <HintPath>Libs\System.Threading.Tasks.Extensions.dll</HintPath>
+        </Reference>
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
@@ -77,7 +107,6 @@
       <Content Include="Libs\Hypernex.CCK.dll" />
       <Content Include="Libs\HypernexSharp.dll" />
       <Content Include="Libs\Nexbox.dll" />
-      <Content Include="Libs\Nexport.dll" />
       <Content Include="Messages\Data\README.md" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
