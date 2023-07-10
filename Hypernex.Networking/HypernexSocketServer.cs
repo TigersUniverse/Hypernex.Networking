@@ -40,6 +40,12 @@ public class HypernexSocketServer
         string localIp = "0.0.0.0", int beginPortRange = 15000, int endPortRange = 25000, bool useMultithreading = true,
         int threadUpdateTime = 10, bool useIPV6 = false, Action onOpen = null, Action<HypernexInstance> onStop = null)
     {
+        kcp2k.Log.Info = s => Logger.CurrentLogger.Debug(s);
+        kcp2k.Log.Warning = s => Logger.CurrentLogger.Warn(s);
+        kcp2k.Log.Error = s => Logger.CurrentLogger.Error(s);
+        Telepathy.Log.Info = s => Logger.CurrentLogger.Debug(s);
+        Telepathy.Log.Warning = s => Logger.CurrentLogger.Warn(s);
+        Telepathy.Log.Error = s => Logger.CurrentLogger.Error(s);
         GameServerSocket = hypernexObject.OpenGameServerSocket(gameServerToken);
         GameServerSocket.OnOpen += () => onOpen?.Invoke();
         GameServerSocket.OnSocketEvent += response =>

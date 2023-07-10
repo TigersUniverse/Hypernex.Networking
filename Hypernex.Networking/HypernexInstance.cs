@@ -275,6 +275,8 @@ public class HypernexInstance
                         targetUserId = o.targetUserId,
                         message = o.message
                     };
+                    if(Moderators.Contains(warnPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
+                        return;
                     ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
                     if (c == null)
                         return;
@@ -291,6 +293,8 @@ public class HypernexInstance
                         targetUserId = o.targetUserId,
                         message = o.message
                     };
+                    if(Moderators.Contains(kickPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
+                        return;
                     ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
                     if (c == null)
                         return;
@@ -307,10 +311,36 @@ public class HypernexInstance
                         targetUserId = o.targetUserId,
                         message = o.message
                     };
-                    ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
-                    if (c == null)
+                    if(Moderators.Contains(banPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
                         return;
-                    BanUser(c, Msg.Serialize(banPlayer));
+                    ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
+                    BanUser(banPlayer.targetUserId, c, Msg.Serialize(banPlayer));
+                }
+            }
+            else if (meta.TypeOfData == typeof(UnbanPlayer))
+            {
+                if (Moderators.Contains(userId))
+                {
+                    UnbanPlayer u = (UnbanPlayer) Convert.ChangeType(meta.Data, typeof(UnbanPlayer));
+                    UnbanUser(u.targetUserId);
+                }
+            }
+            else if (meta.TypeOfData == typeof(AddModerator))
+            {
+                if (Moderators.Contains(userId))
+                {
+                    AddModerator a = (AddModerator) Convert.ChangeType(meta.Data, typeof(AddModerator));
+                    AddModerator(a.targetUserId);
+                }
+            }
+            else if (meta.TypeOfData == typeof(RemoveModerator))
+            {
+                if (Moderators.Contains(userId))
+                {
+                    RemoveModerator r = (RemoveModerator) Convert.ChangeType(meta.Data, typeof(RemoveModerator));
+                    if(Moderators.Contains(r.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
+                        return;
+                    RemoveModerator(r.targetUserId);
                 }
             }
         };
@@ -356,14 +386,21 @@ public class HypernexInstance
         _server.KickClient(client, optionalMessage);
     }
 
-    public void BanUser(ClientIdentifier client, byte[] optionalMessage = null)
+    public void BanUser(string userid, ClientIdentifier client, byte[] optionalMessage = null)
     {
-        string uid = GetUserIdFromClientIdentifier(client);
-        if (string.IsNullOrEmpty(uid) || Moderators.Contains(uid))
-            return;
-        _hypernexSocketServer.GameServerSocket.BanUser(_instanceMeta.InstanceId, uid);
-        _server.KickClient(client, optionalMessage);
+        _hypernexSocketServer.GameServerSocket.BanUser(_instanceMeta.InstanceId, userid);
+        if(client != null)
+            _server.KickClient(client, optionalMessage);
     }
+
+    public void UnbanUser(string userid) =>
+        _hypernexSocketServer.GameServerSocket.UnbanUser(_instanceMeta.InstanceId, userid);
+
+    public void AddModerator(string userid) =>
+        _hypernexSocketServer.GameServerSocket.AddModerator(_instanceMeta.InstanceId, userid);
+    
+    public void RemoveModerator(string userid) =>
+        _hypernexSocketServer.GameServerSocket.RemoveModerator(_instanceMeta.InstanceId, userid);
 
     public void SendMessageToClient(ClientIdentifier identifier, byte[] message,
         MessageChannel messageChannel = MessageChannel.Reliable) =>

@@ -4,6 +4,13 @@ namespace Hypernex.Networking.Server;
 
 public class ServerLogger : Logger
 {
+    public override void Debug(object o)
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine(o);
+        Console.ForegroundColor = ConsoleColor.White;
+    }
+
     public override void Log(object o)
     {
         Console.ForegroundColor = ConsoleColor.White;

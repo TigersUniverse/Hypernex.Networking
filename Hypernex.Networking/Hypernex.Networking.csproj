@@ -84,6 +84,7 @@
         <Compile Include="HypernexInstanceClient.cs" />
         <Compile Include="HypernexInstance.cs" />
         <Compile Include="HypernexSocketServer.cs" />
+        <Compile Include="Messages\AddModerator.cs" />
         <Compile Include="Messages\BanPlayer.cs" />
         <Compile Include="Messages\Data\float2.cs" />
         <Compile Include="Messages\Data\float3.cs" />
@@ -98,7 +99,9 @@
         <Compile Include="Messages\PlayerUpdate.cs" />
         <Compile Include="Messages\PlayerVoice.cs" />
         <Compile Include="Messages\NetworkedEvent.cs" />
+        <Compile Include="Messages\RemoveModerator.cs" />
         <Compile Include="Messages\RespondAuth.cs" />
+        <Compile Include="Messages\UnbanPlayer.cs" />
         <Compile Include="Messages\WarnPlayer.cs" />
         <Compile Include="Messages\WorldObjectUpdate.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
