@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Timers;
 using Hypernex.CCK;
 using Hypernex.Networking.Messages;
 using HypernexSharp;
@@ -36,6 +37,7 @@ public class HypernexInstance
     private WorldMeta _worldMeta;
     private Action<HypernexInstance> onStop;
     private int loadedScripts;
+    private Timer joinTimer;
 
     private ServerSettings GetServerSettings(ServerSettings settings) => new(settings.Ip,
         settings.Port, true, settings.UseMultithreading,
@@ -257,7 +259,6 @@ public class HypernexInstance
             }
             if (_server.ConnectedClients.Count <= 0)
             {
-                _hypernexSocketServer.GameServerSocket.RemoveInstance(_instanceMeta.InstanceId);
                 StopServer();
             }
             else
@@ -366,7 +367,17 @@ public class HypernexInstance
         return String.Empty;
     }
 
-    public void StartServer() => _server.Create();
+    public void StartServer()
+    {
+        _server.Create();
+        joinTimer = new Timer(30000);
+        joinTimer.Elapsed += (sender, args) =>
+        {
+            if (_server.ConnectedClients.Count <= 0)
+                StopServer();
+        };
+        joinTimer.Start();
+    }
 
     public void StopServer()
     {
@@ -375,6 +386,9 @@ public class HypernexInstance
         onStop?.Invoke(this);
         _server?.Stop();
         _hypernexSocketServer.RemoveInstance(this);
+        joinTimer?.Stop();
+        joinTimer?.Dispose();
+        _hypernexSocketServer.GameServerSocket.RemoveInstance(_instanceMeta.InstanceId);
     }
 
     public void KickUser(ClientIdentifier client, byte[] optionalMessage = null)
