@@ -23,6 +23,13 @@ public static class MessageHandler
                 PlayerHandler.HandlePlayerObjectUpdate(instance, playerObjectUpdate, from);
                 break;
             }
+            case "Hypernex.Networking.Messages.WeightedObjectUpdate":
+            {
+                WeightedObjectUpdate weightedObjectUpdate =
+                    (WeightedObjectUpdate) Convert.ChangeType(msgMeta.Data, typeof(WeightedObjectUpdate));
+                PlayerHandler.HandleWeightedObjectUpdate(instance, weightedObjectUpdate, from);
+                break;
+            }
             case "Hypernex.Networking.Messages.PlayerVoice":
             {
                 PlayerVoice playerVoice = (PlayerVoice) Convert.ChangeType(msgMeta.Data, typeof(PlayerVoice));
@@ -65,6 +72,14 @@ public static class MessageHandler
                 return;
             }
             _playerUpdates.Add(playerUpdate.Auth.UserId, playerUpdate);
+        }
+
+        public static void HandleWeightedObjectUpdate(HypernexInstance instance,
+            WeightedObjectUpdate weightedObjectUpdate, ClientIdentifier from)
+        {
+            weightedObjectUpdate.Auth.TempToken = String.Empty;
+            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(weightedObjectUpdate),
+                MessageChannel.Unreliable);
         }
 
         private static int GetNetworkObjectIndex(string instanceId, string userid, NetworkedObject networkedObject)

@@ -103,6 +103,7 @@
         <Compile Include="Messages\RespondAuth.cs" />
         <Compile Include="Messages\UnbanPlayer.cs" />
         <Compile Include="Messages\WarnPlayer.cs" />
+        <Compile Include="Messages\WeightedObjectUpdate.cs" />
         <Compile Include="Messages\WorldObjectUpdate.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
