@@ -2,6 +2,7 @@
 using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Data;
 using Hypernex.Networking.Server.SandboxedClasses;
+using Hypernex.Sandboxing.SandboxedTypes;
 using Nexbox;
 using Nexbox.Interpreters;
 using Nexport;
@@ -28,11 +29,15 @@ public class ScriptHandler
         ["float4"] = typeof(float4),
         ["Http"] = typeof(HTTP),
         ["WebSocket"] = typeof(ServerWebSocket),
-        ["NetworkEvent"] = typeof(ServerNetworkEvent),
+        ["ServerNetworkEvent"] = typeof(ServerNetworkEvent),
         ["MessageChannel"] = typeof(MessageChannel),
         ["ScriptEvent"] = typeof(ScriptEvent),
+        ["HttpMediaType"] = typeof(HttpMediaType),
         ["OfflineNetworkedObject"] = typeof(OfflineNetworkedObject),
-        ["NetPlayer"] = typeof(NetPlayer)
+        ["NetPlayer"] = typeof(NetPlayer),
+        ["Time"] = typeof(Time),
+        ["UtcTime"] = typeof(UtcTime),
+        ["ScriptEvents"] = typeof(ScriptEvents)
     };
     
     private Dictionary<NexboxScript, IInterpreter> RunningScripts = new();

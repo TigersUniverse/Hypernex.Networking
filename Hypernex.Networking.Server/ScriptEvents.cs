@@ -1,4 +1,5 @@
-﻿using Nexbox;
+﻿using Hypernex.Sandboxing.SandboxedTypes;
+using Nexbox;
 
 namespace Hypernex.Networking.Server;
 
@@ -33,11 +34,4 @@ public class ScriptEvents
                 break;
         }
     }
-}
-
-public enum ScriptEvent
-{
-    OnUserJoin,
-    OnUserLeave,
-    OnUserNetworkEvent
 }
