@@ -5,6 +5,8 @@ namespace Hypernex.Networking.Server;
 
 public class ScriptEvents
 {
+    private ScriptHandler ScriptHandler;
+    
     /// <summary>
     /// UserId when someone joins
     /// </summary>
@@ -18,19 +20,55 @@ public class ScriptEvents
     /// </summary>
     internal Action<string, string, object[]> OnUserNetworkEvent = (userId, EventName, EventArgs) => { };
 
+    internal ScriptEvents(ScriptHandler s) => ScriptHandler = s;
+
     public void Subscribe(ScriptEvent scriptEvent, SandboxFunc callback)
     {
         switch (scriptEvent)
         {
             case ScriptEvent.OnUserJoin:
-                OnUserJoin += userId => SandboxFuncTools.InvokeSandboxFunc(callback, userId);
+                /*OnUserJoin += userId => SandboxFuncTools.InvokeSandboxFunc(callback, userId);*/
+                OnUserJoin += userId =>
+                {
+                    new Thread(() =>
+                    {
+                        if(ScriptHandler.m.WaitOne())
+                        {
+                            ScriptHandler.AwaitingTasks.Enqueue(() => SandboxFuncTools.InvokeSandboxFunc(callback, userId));
+                            ScriptHandler.m.ReleaseMutex();
+                        }
+                    }).Start();
+                };
                 break;
             case ScriptEvent.OnUserLeave:
-                OnUserLeave += userId => SandboxFuncTools.InvokeSandboxFunc(callback, userId);
+                /*OnUserLeave += userId => SandboxFuncTools.InvokeSandboxFunc(callback, userId);*/
+                OnUserLeave += userId =>
+                {
+                    new Thread(() =>
+                    {
+                        if(ScriptHandler.m.WaitOne())
+                        {
+                            ScriptHandler.AwaitingTasks.Enqueue(() => SandboxFuncTools.InvokeSandboxFunc(callback, userId));
+                            ScriptHandler.m.ReleaseMutex();
+                        }
+                    }).Start();
+                };
                 break;
             case ScriptEvent.OnUserNetworkEvent:
+                /*OnUserNetworkEvent += (userId, eventName, eventArgs) =>
+                    SandboxFuncTools.InvokeSandboxFunc(callback, userId, eventName, eventArgs);*/
                 OnUserNetworkEvent += (userId, eventName, eventArgs) =>
-                    SandboxFuncTools.InvokeSandboxFunc(callback, userId, eventName, eventArgs);
+                {
+                    new Thread(() =>
+                    {
+                        if (ScriptHandler.m.WaitOne())
+                        {
+                            ScriptHandler.AwaitingTasks.Enqueue(() =>
+                                SandboxFuncTools.InvokeSandboxFunc(callback, userId, eventName, eventArgs));
+                            ScriptHandler.m.ReleaseMutex();
+                        }
+                    }).Start();
+                };
                 break;
         }
     }

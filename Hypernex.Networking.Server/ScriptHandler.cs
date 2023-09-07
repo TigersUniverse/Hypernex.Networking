@@ -9,13 +9,17 @@ using Nexport;
 
 namespace Hypernex.Networking.Server;
 
-public class ScriptHandler
+public class ScriptHandler : IDisposable
 {
     internal static readonly List<ScriptHandler> Instances = new();
     
     internal HypernexSocketServer Server;
     internal HypernexInstance Instance;
-    internal readonly ScriptEvents Events = new ();
+    internal readonly ScriptEvents Events;
+    internal readonly Queue<Action> AwaitingTasks = new();
+    internal readonly Mutex m = new ();
+    private readonly CancellationTokenSource cts = new();
+    private bool disposed;
 
     private static readonly Dictionary<string, object> GlobalsToForward = new Dictionary<string, object>
     {
@@ -44,6 +48,7 @@ public class ScriptHandler
 
     internal ScriptHandler(HypernexSocketServer socketServer, HypernexInstance instance)
     {
+        Events = new ScriptEvents(this);
         Server = socketServer;
         Instance = instance;
         Instance.OnClientConnect += Events.OnUserJoin;
@@ -74,21 +79,64 @@ public class ScriptHandler
             interpreter.ForwardType(keyValuePair.Key, keyValuePair.Value);
     }
 
+    private void e(IInterpreter interpreter, string script)
+    {
+        try
+        {
+            interpreter.RunScript(script, Console.WriteLine);
+            while (!cts.IsCancellationRequested)
+            {
+                if (AwaitingTasks.Count > 0)
+                {
+                    if (m.WaitOne(5))
+                    {
+                        Action a = AwaitingTasks.Dequeue();
+                        a.Invoke();
+                        m.ReleaseMutex();
+                    }
+                }
+                Thread.Sleep(ServerConfig.LoadedConfig.ThreadUpdate);
+            }
+        }catch(Exception){Dispose();}
+    }
+
     private void execute(IInterpreter interpreter, string script, bool multithread)
     {
         if (multithread)
-            new Thread(() => interpreter.RunScript(script));
+            new Thread(() => e(interpreter, script)).Start();
         else
-            Task.Factory.StartNew(() => interpreter.RunScript(script));
+            Task.Factory.StartNew(() => e(interpreter, script));
+    }
+
+    private void OnPrint(string scriptName, object o)
+    {
+        foreach (string userid in Instance.ConnectedClients)
+            if (userid == Instance.WorldOwnerId)
+            {
+                // Send the world owner the server log
+                ServerConsoleLog serverConsoleLog = new ServerConsoleLog
+                {
+                    ScriptName = scriptName,
+                    Log = o.ToString()
+                };
+                byte[] msg = Msg.Serialize(serverConsoleLog);
+                Instance.SendMessageToClient(Instance.GetClientIdentifierFromUserId(userid), msg);
+                // We can also send all moderators of the instance this message, IF the instance owner is also the world owner
+                if (userid != Instance.InstanceCreatorId) continue;
+                foreach (string moderator in Instance.Moderators)
+                    Instance.SendMessageToClient(Instance.GetClientIdentifierFromUserId(moderator), msg);
+            }
     }
 
     internal void LoadAndExecuteScript(NexboxScript script, bool multithread = true)
     {
+        if (disposed)
+            return;
         switch (script.Language)
         {
             case NexboxLanguage.JavaScript:
                 JavaScriptInterpreter javaScriptInterpreter = new JavaScriptInterpreter();
-                javaScriptInterpreter.StartSandbox(Console.WriteLine);
+                javaScriptInterpreter.StartSandbox(o => OnPrint(script.Name + script.GetExtensionFromLanguage(), o));
                 CreateGlobalsForInterpreter(javaScriptInterpreter);
                 ForwardTypesToInterpreter(javaScriptInterpreter);
                 RunningScripts.Add(script, javaScriptInterpreter);
@@ -96,7 +144,7 @@ public class ScriptHandler
                 break;
             case NexboxLanguage.Lua:
                 LuaInterpreter luaInterpreter = new LuaInterpreter();
-                luaInterpreter.StartSandbox(Console.WriteLine);
+                luaInterpreter.StartSandbox(o => OnPrint(script.Name + script.GetExtensionFromLanguage(), o));
                 CreateGlobalsForInterpreter(luaInterpreter);
                 ForwardTypesToInterpreter(luaInterpreter);
                 RunningScripts.Add(script, luaInterpreter);
@@ -105,8 +153,12 @@ public class ScriptHandler
         }
     }
 
-    internal void Stop()
+    internal bool Compare(HypernexInstance instance) => Instance.Equals(instance);
+
+    public void Dispose()
     {
+        if (disposed)
+            return;
         foreach (KeyValuePair<NexboxScript, IInterpreter> keyValuePair in new Dictionary<NexboxScript, IInterpreter>(
                      RunningScripts))
         {
@@ -114,7 +166,8 @@ public class ScriptHandler
             RunningScripts.Remove(keyValuePair.Key);
         }
         Instances.Remove(this);
+        m?.Dispose();
+        cts?.Dispose();
+        disposed = true;
     }
-
-    internal bool Compare(HypernexInstance instance) => Instance.Equals(instance);
 }

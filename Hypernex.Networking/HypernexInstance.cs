@@ -23,11 +23,15 @@ public class HypernexInstance
     public bool IsOpen => _server?.IsOpen ?? false;
     public List<string> ConnectedClients => new (AuthedUsers.Values.Select(x => x.UserId));
     public string InstanceId => _instanceMeta?.InstanceId ?? String.Empty;
+    public string WorldOwnerId => _worldMeta?.OwnerId ?? String.Empty;
+    public string InstanceCreatorId => _instanceMeta?.InstanceCreatorId;
+    public string[] Moderators => new List<string>(moderators).ToArray();
+    public HypernexSocketServer SocketServer => _hypernexSocketServer;
 
     internal InstanceMeta _instanceMeta;
     internal ServerSettings _serverSettings;
     internal List<TempUserToken> ValidTokens = new();
-    internal List<string> Moderators = new();
+    internal List<string> moderators = new();
     internal List<string> BannedUsers = new();
     internal List<string> SocketConnectedUsers = new();
 
@@ -95,7 +99,8 @@ public class HypernexInstance
                 using (StreamReader reader = new StreamReader(stream))
                 {
                     string script = reader.ReadToEnd();
-                    NexboxScript nexboxScript = new NexboxScript(GetLanguageFromFileName(fileName), script);
+                    NexboxScript nexboxScript = new NexboxScript(GetLanguageFromFileName(fileName), script)
+                        {Name = Path.GetFileNameWithoutExtension(fileName)};
                     scriptsReceived.Add(nexboxScript);
                     scriptsToGet.RemoveAt(0);
                     loadedScripts++;
@@ -164,7 +169,7 @@ public class HypernexInstance
 
     internal void UpdateInstance(InstanceMeta meta)
     {
-        Moderators = new(meta.Moderators);
+        moderators = new(meta.Moderators);
         BannedUsers = new(meta.BannedUsers);
         SocketConnectedUsers = new(meta.ConnectedUsers);
     }
@@ -268,7 +273,7 @@ public class HypernexInstance
         {
             if (meta.TypeOfData == typeof(WarnPlayer))
             {
-                if (Moderators.Contains(userId))
+                if (moderators.Contains(userId))
                 {
                     WarnPlayer o = (WarnPlayer) Convert.ChangeType(meta.Data, typeof(WarnPlayer));
                     WarnPlayer warnPlayer = new WarnPlayer
@@ -276,7 +281,7 @@ public class HypernexInstance
                         targetUserId = o.targetUserId,
                         message = o.message
                     };
-                    if(Moderators.Contains(warnPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
+                    if(moderators.Contains(warnPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
                         return;
                     ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
                     if (c == null)
@@ -286,7 +291,7 @@ public class HypernexInstance
             }
             else if (meta.TypeOfData == typeof(KickPlayer))
             {
-                if (Moderators.Contains(userId))
+                if (moderators.Contains(userId))
                 {
                     KickPlayer o = (KickPlayer) Convert.ChangeType(meta.Data, typeof(KickPlayer));
                     KickPlayer kickPlayer = new KickPlayer
@@ -294,7 +299,7 @@ public class HypernexInstance
                         targetUserId = o.targetUserId,
                         message = o.message
                     };
-                    if(Moderators.Contains(kickPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
+                    if(moderators.Contains(kickPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
                         return;
                     ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
                     if (c == null)
@@ -304,7 +309,7 @@ public class HypernexInstance
             }
             else if (meta.TypeOfData == typeof(BanPlayer))
             {
-                if (Moderators.Contains(userId))
+                if (moderators.Contains(userId))
                 {
                     BanPlayer o = (BanPlayer) Convert.ChangeType(meta.Data, typeof(BanPlayer));
                     BanPlayer banPlayer = new BanPlayer
@@ -312,7 +317,7 @@ public class HypernexInstance
                         targetUserId = o.targetUserId,
                         message = o.message
                     };
-                    if(Moderators.Contains(banPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
+                    if(moderators.Contains(banPlayer.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
                         return;
                     ClientIdentifier c = GetClientIdentifierFromUserId(o.targetUserId);
                     BanUser(banPlayer.targetUserId, c, Msg.Serialize(banPlayer));
@@ -320,7 +325,7 @@ public class HypernexInstance
             }
             else if (meta.TypeOfData == typeof(UnbanPlayer))
             {
-                if (Moderators.Contains(userId))
+                if (moderators.Contains(userId))
                 {
                     UnbanPlayer u = (UnbanPlayer) Convert.ChangeType(meta.Data, typeof(UnbanPlayer));
                     UnbanUser(u.targetUserId);
@@ -328,7 +333,7 @@ public class HypernexInstance
             }
             else if (meta.TypeOfData == typeof(AddModerator))
             {
-                if (Moderators.Contains(userId))
+                if (moderators.Contains(userId))
                 {
                     AddModerator a = (AddModerator) Convert.ChangeType(meta.Data, typeof(AddModerator));
                     AddModerator(a.targetUserId);
@@ -336,10 +341,10 @@ public class HypernexInstance
             }
             else if (meta.TypeOfData == typeof(RemoveModerator))
             {
-                if (Moderators.Contains(userId))
+                if (moderators.Contains(userId))
                 {
                     RemoveModerator r = (RemoveModerator) Convert.ChangeType(meta.Data, typeof(RemoveModerator));
-                    if(Moderators.Contains(r.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
+                    if(moderators.Contains(r.targetUserId) && userId != _instanceMeta.InstanceCreatorId)
                         return;
                     RemoveModerator(r.targetUserId);
                 }

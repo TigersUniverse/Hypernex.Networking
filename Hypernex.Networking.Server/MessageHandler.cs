@@ -1,4 +1,5 @@
-﻿using Hypernex.Networking.Messages;
+﻿using Hypernex.CCK;
+using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Data;
 using Nexport;
 
@@ -49,6 +50,16 @@ public static class MessageHandler
                     (WorldObjectUpdate) Convert.ChangeType(msgMeta.Data, typeof(WorldObjectUpdate));
                 worldObjectUpdate!.Auth.TempToken = String.Empty;
                 ObjectHandler.HandleObjectUpdateMessage(instance, worldObjectUpdate, from, channel);
+                break;
+            }
+            case "Hypernex.Networking.Messages.ServerConsoleExecute":
+            {
+                ServerConsoleExecute serverConsoleExecute =
+                    (ServerConsoleExecute) Convert.ChangeType(msgMeta.Data, typeof(ServerConsoleExecute));
+                ScriptHandler scriptHandler = new ScriptHandler(instance.SocketServer, instance);
+                scriptHandler.LoadAndExecuteScript(
+                    new NexboxScript(serverConsoleExecute.Language, serverConsoleExecute.ScriptText)
+                        {Name = "console"});
                 break;
             }
         }

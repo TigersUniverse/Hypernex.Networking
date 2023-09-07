@@ -101,6 +101,8 @@
         <Compile Include="Messages\NetworkedEvent.cs" />
         <Compile Include="Messages\RemoveModerator.cs" />
         <Compile Include="Messages\RespondAuth.cs" />
+        <Compile Include="Messages\ServerConsoleExecute.cs" />
+        <Compile Include="Messages\ServerConsoleLog.cs" />
         <Compile Include="Messages\UnbanPlayer.cs" />
         <Compile Include="Messages\WarnPlayer.cs" />
         <Compile Include="Messages\WeightedObjectUpdate.cs" />

@@ -87,7 +87,7 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
         foreach (ScriptHandler scriptHandler in new List<ScriptHandler>(ScriptHandler.Instances))
         {
             if (scriptHandler.Compare(instance))
-                scriptHandler.Stop();
+                scriptHandler.Dispose();
         }
         MessageHandler.PlayerHandler.RemoveInstanceFromPlayerObjects(instance);
         MessageHandler.ObjectHandler.RemoveInstanceFromWorldObjects(instance);
