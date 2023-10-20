@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using Hypernex.CCK;
 using HypernexSharp;
 using HypernexSharp.Socketing;
@@ -22,14 +23,24 @@ public class HypernexSocketServer
 
     private Dictionary<string, int> TemporaryInstances = new ();
 
-    private int GetAvailablePortForInstance(int BeginPortRange, int EndPortRange)
+    private int GetAvailablePortForInstance(int BeginPortRange, int EndPortRange, string localip)
     {
-        Random r = new Random();
-        int selectedPort = r.Next(BeginPortRange, EndPortRange);
-        while (Instances.Count(x => x._serverSettings.Port == selectedPort) > 0 ||
-               new Dictionary<string, int>(TemporaryInstances).ContainsValue(selectedPort))
-            selectedPort = r.Next(BeginPortRange, EndPortRange);
-        return selectedPort;
+        for (int i = BeginPortRange; i < EndPortRange; i++)
+        {
+            bool ci = Instances.Count(x => x._serverSettings.Port == i) > 0;
+            bool cti = new Dictionary<string, int>(TemporaryInstances).ContainsValue(i);
+            bool ipl;
+            try
+            {
+                IPGlobalProperties ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+                bool ipl1 = ipGlobalProperties.GetActiveTcpListeners().Count(x => x.Port == i) > 0;
+                bool ipl2 = ipGlobalProperties.GetActiveUdpListeners().Count(x => x.Port == i) > 0;
+                ipl = ipl1 || ipl2;
+            } catch(Exception){ ipl = false; }
+            if (ci || cti || ipl) continue;
+            return i;
+        }
+        return -1;
     }
 
     private HypernexInstance GetInstanceById(string instanceId) =>
@@ -59,8 +70,10 @@ public class HypernexSocketServer
                         GameServerSocket.TryParseData<RequestedInstanceCreated>(response);
                     if (_instances.Count < endPortRange - beginPortRange)
                     {
-                        // Request this instance
-                        int p = GetAvailablePortForInstance(beginPortRange, endPortRange);
+                        // Request this instance if we have an Open Port
+                        int p = GetAvailablePortForInstance(beginPortRange, endPortRange, localIp);
+                        if (p < 0)
+                            break;
                         GameServerSocket.ClaimInstanceRequest(requestedInstanceCreated.temporaryId,
                             globalIp + ":" + p);
                         TemporaryInstances.Add(requestedInstanceCreated.temporaryId, p);
