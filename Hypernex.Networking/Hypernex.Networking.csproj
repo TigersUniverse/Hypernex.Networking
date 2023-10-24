@@ -100,6 +100,7 @@
         <Compile Include="Messages\PlayerVoice.cs" />
         <Compile Include="Messages\NetworkedEvent.cs" />
         <Compile Include="Messages\RemoveModerator.cs" />
+        <Compile Include="Messages\ResetWeightedObjects.cs" />
         <Compile Include="Messages\RespondAuth.cs" />
         <Compile Include="Messages\ServerConsoleExecute.cs" />
         <Compile Include="Messages\ServerConsoleLog.cs" />

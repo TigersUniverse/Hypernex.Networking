@@ -5,7 +5,7 @@ namespace Hypernex.Networking.Messages;
 [Msg]
 public class WeightedObjectUpdate
 {
-    [MsgKey(1)] public string MessageId => typeof(PlayerObjectUpdate).FullName;
+    [MsgKey(1)] public string MessageId => typeof(WeightedObjectUpdate).FullName;
     
     // Player Meta
     

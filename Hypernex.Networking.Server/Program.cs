@@ -35,6 +35,38 @@ HypernexSocketServer.OnInstance += instance =>
         if (clientIdentifier != null)
             MessageHandler.HandleMessage(instance, meta, channel, clientIdentifier);
     };
+    instance.OnClientConnect += userid =>
+    {
+        if (MessageHandler.ObjectHandler.Objects.ContainsKey(instance.InstanceId))
+        {
+            Dictionary<string, List<WorldObjectUpdate>> d =
+                MessageHandler.ObjectHandler.Objects[instance.InstanceId];
+            foreach (WorldObjectUpdate worldObjectUpdate in d.Values.SelectMany(
+                         worldObjectUpdates => worldObjectUpdates))
+            {
+                ClientIdentifier clientIdentifier = instance.GetClientIdentifierFromUserId(userid);
+                byte[] msg = Msg.Serialize(worldObjectUpdate);
+                instance.SendMessageToClient(clientIdentifier, msg);
+            }
+        }
+
+        if (MessageHandler.PlayerHandler.WeightedObjects.ContainsKey(instance.InstanceId))
+        {
+            ClientIdentifier clientIdentifier = instance.GetClientIdentifierFromUserId(userid);
+            if (clientIdentifier != null)
+                foreach (KeyValuePair<string,List<WeightedObjectUpdate>> keyValuePair in MessageHandler.PlayerHandler.WeightedObjects[instance.InstanceId])
+                {
+                    if(keyValuePair.Key == userid) continue;
+                    foreach (WeightedObjectUpdate weightedObjectUpdate in keyValuePair.Value)
+                    {
+                        byte[] msg = Msg.Serialize(weightedObjectUpdate);
+                        instance.SendMessageToClient(clientIdentifier, msg);
+                    }
+                }
+        }
+    };
+    instance.OnClientDisconnect +=
+        userid => MessageHandler.ObjectHandler.RemovePlayerFromWorldObjects(instance, userid);
 };
 logger.Log("Registered Events!");
 
@@ -52,24 +84,6 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
             ScriptHandler s = new ScriptHandler(scripts.Item1, scripts.Item2);
             s.LoadAndExecuteScript(nexboxScript, ServerConfig.LoadedConfig.UseMultithreading);
         }
-
-        scripts.Item2.OnClientConnect += userid =>
-        {
-            Dictionary<string, List<WorldObjectUpdate>> d;
-            if (MessageHandler.ObjectHandler.Objects.ContainsKey(scripts.Item2.InstanceId))
-                d = MessageHandler.ObjectHandler.Objects[scripts.Item2.InstanceId];
-            else
-                return;
-            foreach (WorldObjectUpdate worldObjectUpdate in d.Values.SelectMany(
-                         worldObjectUpdates => worldObjectUpdates))
-            {
-                ClientIdentifier clientIdentifier = scripts.Item2.GetClientIdentifierFromUserId(userid);
-                byte[] msg = Msg.Serialize(worldObjectUpdate);
-                scripts.Item2.SendMessageToClient(clientIdentifier, msg);
-            }
-        };
-        scripts.Item2.OnClientDisconnect += userid =>
-            MessageHandler.ObjectHandler.RemovePlayerFromWorldObjects(scripts.Item2, userid);
     },
     ServerConfig.LoadedConfig.GameServerToken, ServerConfig.LoadedConfig.LocalIp, 
     ServerConfig.LoadedConfig.BeginPortRange, ServerConfig.LoadedConfig.EndPortRange, 
