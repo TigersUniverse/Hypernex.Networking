@@ -14,6 +14,8 @@ public class NetPlayers
     internal NetPlayers(HypernexInstance instance) => _instance = instance;
 
     public string[] UserIds => _instance.ConnectedClients.ToArray();
+    public string InstanceCreatorId => _instance.InstanceCreatorId;
+    public string HostId => _instance.HostId;
 
     public NetPlayer GetNetPlayerUpdate(string userid)
     {

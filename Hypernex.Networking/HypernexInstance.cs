@@ -28,6 +28,16 @@ public class HypernexInstance
     public string[] Moderators => new List<string>(moderators).ToArray();
     public HypernexSocketServer SocketServer => _hypernexSocketServer;
 
+    public string HostId
+    {
+        get
+        {
+            if (ConnectedClients.Contains(InstanceCreatorId))
+                return InstanceCreatorId;
+            return ConnectedClients[0];
+        }
+    }
+
     internal InstanceMeta _instanceMeta;
     internal ServerSettings _serverSettings;
     internal List<TempUserToken> ValidTokens = new();
@@ -179,7 +189,11 @@ public class HypernexInstance
         Dictionary<ClientIdentifier, string> clients = new Dictionary<ClientIdentifier, string>();
         foreach (KeyValuePair<ClientIdentifier,JoinAuth> keyValuePair in AuthedUsers)
             clients.Add(keyValuePair.Key, keyValuePair.Value.UserId);
-        InstancePlayers instancePlayers = new InstancePlayers {UserIds = clients};
+        InstancePlayers instancePlayers = new InstancePlayers
+        {
+            UserIds = clients,
+            HostId = HostId
+        };
         BroadcastMessage(Msg.Serialize(instancePlayers));
     }
 

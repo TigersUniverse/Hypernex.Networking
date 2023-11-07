@@ -20,6 +20,7 @@ public class HypernexInstanceClient
     public Action<User> OnClientDisconnect { get; set; } = identifier => { };
     public Action OnDisconnect { get; set; } = () => { };
     public bool IsOpen => _client?.IsOpen ?? false;
+    public string HostId { get; private set; }
 
     public List<User> ConnectedUsers
     {
@@ -119,6 +120,7 @@ public class HypernexInstanceClient
             {
                 InstancePlayers instancePlayers =
                     (InstancePlayers) Convert.ChangeType(meta.Data, typeof(InstancePlayers));
+                HostId = instancePlayers.HostId;
                 if (justJoined)
                 {
                     foreach (KeyValuePair<ClientIdentifier, string> keyValuePair in instancePlayers.UserIds)

@@ -11,4 +11,5 @@ public class InstancePlayers
 {
     [MsgKey(1)] public string MessageId => typeof(InstancePlayers).FullName;
     [MsgKey(2)] public Dictionary<ClientIdentifier, string> UserIds = new ();
+    [MsgKey(3)] public string HostId;
 }

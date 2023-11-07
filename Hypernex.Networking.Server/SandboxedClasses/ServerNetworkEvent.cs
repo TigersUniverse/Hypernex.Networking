@@ -7,6 +7,7 @@ public class ServerNetworkEvent
 {
     private ScriptHandler _scriptHandler;
 
+    public ServerNetworkEvent() => throw new Exception("Cannot Instantiate ServerNetworkEvent");
     internal ServerNetworkEvent(ScriptHandler scriptHandler) => _scriptHandler = scriptHandler;
 
     public void SendToClient(string userid, string eventName, object[] data = null,

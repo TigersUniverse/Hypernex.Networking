@@ -1,4 +1,6 @@
-﻿using Hypernex.Sandboxing.SandboxedTypes;
+﻿using System.Globalization;
+using System.Reflection;
+using Hypernex.Sandboxing.SandboxedTypes;
 using Nexbox;
 
 namespace Hypernex.Networking.Server;
@@ -20,6 +22,7 @@ public class ScriptEvents
     /// </summary>
     internal Action<string, string, object[]> OnUserNetworkEvent = (userId, EventName, EventArgs) => { };
 
+    public ScriptEvents() => throw new Exception("Cannot instantiate ScriptEvents!");
     internal ScriptEvents(ScriptHandler s) => ScriptHandler = s;
 
     public void Subscribe(ScriptEvent scriptEvent, SandboxFunc callback)
@@ -30,6 +33,7 @@ public class ScriptEvents
                 /*OnUserJoin += userId => SandboxFuncTools.InvokeSandboxFunc(callback, userId);*/
                 OnUserJoin += userId =>
                 {
+                    if (ScriptHandler.disposed) return;
                     new Thread(() =>
                     {
                         if(ScriptHandler.m.WaitOne())
@@ -44,6 +48,7 @@ public class ScriptEvents
                 /*OnUserLeave += userId => SandboxFuncTools.InvokeSandboxFunc(callback, userId);*/
                 OnUserLeave += userId =>
                 {
+                    if (ScriptHandler.disposed) return;
                     new Thread(() =>
                     {
                         if(ScriptHandler.m.WaitOne())
@@ -59,6 +64,7 @@ public class ScriptEvents
                     SandboxFuncTools.InvokeSandboxFunc(callback, userId, eventName, eventArgs);*/
                 OnUserNetworkEvent += (userId, eventName, eventArgs) =>
                 {
+                    if (ScriptHandler.disposed) return;
                     new Thread(() =>
                     {
                         if (ScriptHandler.m.WaitOne())
