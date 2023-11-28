@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Reflection;
-using Hypernex.Sandboxing.SandboxedTypes;
+﻿using Hypernex.Sandboxing.SandboxedTypes;
 using Nexbox;
 
 namespace Hypernex.Networking.Server;
@@ -25,8 +23,9 @@ public class ScriptEvents
     public ScriptEvents() => throw new Exception("Cannot instantiate ScriptEvents!");
     internal ScriptEvents(ScriptHandler s) => ScriptHandler = s;
 
-    public void Subscribe(ScriptEvent scriptEvent, SandboxFunc callback)
+    public void Subscribe(ScriptEvent scriptEvent, object o)
     {
+        SandboxFunc callback = SandboxFuncTools.TryConvert(o);
         switch (scriptEvent)
         {
             case ScriptEvent.OnUserJoin:

@@ -9,18 +9,30 @@ public class ServerWebSocket
 
     public bool IsOpen => webSocket?.IsAlive ?? false;
     
-    public void Create(string url, SandboxFunc OnOpen = null, SandboxFunc OnMessage = null, SandboxFunc OnClose = null, SandboxFunc OnError = null)
+    public void Create(string url, object OnOpen = null, object OnMessage = null, object OnClose = null, object OnError = null)
     {
         webSocket = new WebSocket(url);
         if (OnOpen != null)
-            webSocket.OnOpen += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(OnOpen);
+        {
+            SandboxFunc onOpen = SandboxFuncTools.TryConvert(OnOpen);
+            webSocket.OnOpen += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(onOpen);
+        }
         if (OnMessage != null)
-            webSocket.OnMessage += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(OnMessage, args.Data);
+        {
+            SandboxFunc onMessage = SandboxFuncTools.TryConvert(OnMessage);
+            webSocket.OnMessage += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(onMessage, args.Data);
+        }
         if (OnClose != null)
+        {
+            SandboxFunc onClose = SandboxFuncTools.TryConvert(OnClose);
             webSocket.OnClose += (sender, args) =>
-                SandboxFuncTools.InvokeSandboxFunc(OnClose, args.Code, args.Reason, args.WasClean);
+                SandboxFuncTools.InvokeSandboxFunc(onClose, args.Code, args.Reason, args.WasClean);
+        }
         if (OnError != null)
-            webSocket.OnError += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(OnError, args.Message);
+        {
+            SandboxFunc onError = SandboxFuncTools.TryConvert(OnError);
+            webSocket.OnError += (sender, args) => SandboxFuncTools.InvokeSandboxFunc(onError, args.Message);
+        }
     }
 
     public void Open() => webSocket.Connect();

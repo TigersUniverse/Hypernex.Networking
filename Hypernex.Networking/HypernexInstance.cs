@@ -223,17 +223,22 @@ public class HypernexInstance
         {
             try
             {
+                string userid = GetUserIdFromClientIdentifier(identifier);
+                if(string.IsNullOrEmpty(userid))
+                    return;
                 bool didInvoke = false;
                 foreach (FieldInfo fieldInfo in meta.Data.GetType().GetFields())
                 {
                     if (fieldInfo.FieldType == typeof(JoinAuth))
                     {
                         JoinAuth joinAuth = (JoinAuth) Convert.ChangeType(fieldInfo.GetValue(meta.Data), typeof(JoinAuth));
+                        if(userid != joinAuth.UserId)
+                            return;
                         if (!didInvoke && AuthedUsers.Count(x =>
-                                x.Value.UserId == joinAuth.UserId && x.Value.TempToken == joinAuth.TempToken) > 0)
+                                x.Value.UserId == userid && x.Value.TempToken == joinAuth.TempToken) > 0)
                         {
                             didInvoke = true;
-                            OnMessage.Invoke(joinAuth.UserId, meta, messageChannel);
+                            OnMessage.Invoke(userid, meta, messageChannel);
                         }
                     }
                 }
@@ -244,11 +249,13 @@ public class HypernexInstance
                         if (propertyInfo.PropertyType == typeof(JoinAuth))
                         {
                             JoinAuth joinAuth = (JoinAuth) Convert.ChangeType(propertyInfo.GetValue(meta.Data), typeof(JoinAuth));
+                            if(userid != joinAuth.UserId)
+                                return;
                             if (!didInvoke && AuthedUsers.Count(x =>
-                                    x.Value.UserId == joinAuth.UserId && x.Value.TempToken == joinAuth.TempToken) > 0)
+                                    x.Value.UserId == userid && x.Value.TempToken == joinAuth.TempToken) > 0)
                             {
                                 didInvoke = true;
-                                OnMessage.Invoke(joinAuth.UserId, meta, messageChannel);
+                                OnMessage.Invoke(userid, meta, messageChannel);
                             }
                         }
                     }
