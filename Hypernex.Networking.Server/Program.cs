@@ -49,21 +49,6 @@ HypernexSocketServer.OnInstance += instance =>
                 instance.SendMessageToClient(clientIdentifier, msg);
             }
         }
-
-        if (MessageHandler.PlayerHandler.WeightedObjects.ContainsKey(instance.InstanceId))
-        {
-            ClientIdentifier clientIdentifier = instance.GetClientIdentifierFromUserId(userid);
-            if (clientIdentifier != null)
-                foreach (KeyValuePair<string,List<WeightedObjectUpdate>> keyValuePair in MessageHandler.PlayerHandler.WeightedObjects[instance.InstanceId])
-                {
-                    if(keyValuePair.Key == userid) continue;
-                    foreach (WeightedObjectUpdate weightedObjectUpdate in keyValuePair.Value)
-                    {
-                        byte[] msg = Msg.Serialize(weightedObjectUpdate);
-                        instance.SendMessageToClient(clientIdentifier, msg);
-                    }
-                }
-        }
     };
     instance.OnClientDisconnect +=
         userid => MessageHandler.ObjectHandler.RemovePlayerFromWorldObjects(instance, userid);
@@ -103,13 +88,13 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
             if (scriptHandler.Compare(instance))
                 scriptHandler.Dispose();
         }
-        MessageHandler.PlayerHandler.RemoveInstanceFromPlayerObjects(instance);
         MessageHandler.ObjectHandler.RemoveInstanceFromWorldObjects(instance);
     });
 HandleCommand(Console.ReadLine() ?? String.Empty);
 hypernexObject.CloseGameServerSocket();
 Console.ForegroundColor = ConsoleColor.DarkCyan;
 Console.WriteLine("Goodbye!");
+Environment.Exit(0);
 
 const string COMMANDS = "instances - Gets a list of all open instances\n" +
                         "exit - Safely shuts down the server and all instances\n" +

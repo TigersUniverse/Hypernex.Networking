@@ -5,7 +5,6 @@ namespace Hypernex.Networking.Messages.Data;
 [Msg]
 public struct float2
 {
-    [MsgKey(1)] public string MessageId => typeof(float2).FullName;
     [MsgKey(2)] public float x;
     [MsgKey(3)] public float y;
 

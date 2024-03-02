@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Hypernex.Networking.Messages.Data;
+﻿using System;
 using Nexport;
 
 namespace Hypernex.Networking.Messages;
@@ -9,34 +8,30 @@ namespace Hypernex.Networking.Messages;
 /// data, and GameServer-only data.
 /// </summary>
 [Msg]
+[MsgCompress(22)]
 public class PlayerUpdate
 {
-    // Message Meta
-    
-    [MsgKey(1)] public string MessageId => typeof(PlayerUpdate).FullName;
-    
     // Player Meta
-    
     [MsgKey(2)] public JoinAuth Auth;
     [MsgKey(3)] public bool IsPlayerVR;
     [MsgKey(4)] public string AvatarId;
     [MsgKey(5)] public bool IsSpeaking;
-    
-    /// <summary>
-    /// Can be used for player assigned badges, names, etc. Must be handled by the client.
-    /// </summary>
-    [MsgKey(6)] public List<string> PlayerAssignedTags;
+    [MsgKey(6)] public bool IsFBT;
+    [MsgKey(7)] public string VRIKJson;
 
-    // Player Tracking
-    
-    /// <summary>
-    /// A Dictionary containing object's weights. This can be used for things like facial tracking, animator
-    /// parameters, or other extraneous weights.
-    /// </summary>
-    [MsgKey(7)] public Dictionary<string, float> WeightedObjects;
-    /// <summary>
-    /// A Dictionary containing any extraneous data that cannot be weighted.
-    /// TValue must be serializable/deserializable by MsgPack
-    /// </summary>
-    [MsgKey(8)] public Dictionary<string, object> ExtraneousData;
+    public override bool Equals(object obj)
+    {
+        if (obj == null) return false;
+        Type type = obj.GetType();
+        if (type != typeof(PlayerUpdate)) return false;
+        PlayerUpdate compare = (PlayerUpdate) obj;
+        if (compare.Auth.UserId != Auth.UserId) return false;
+        if (compare.Auth.TempToken != Auth.TempToken) return false;
+        if (compare.IsPlayerVR != IsPlayerVR) return false;
+        if (compare.AvatarId != AvatarId) return false;
+        if (compare.IsSpeaking != IsSpeaking) return false;
+        if (compare.IsFBT != IsFBT) return false;
+        if (compare.VRIKJson != VRIKJson) return false;
+        return true;
+    }
 }

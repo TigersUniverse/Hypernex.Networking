@@ -8,7 +8,6 @@ namespace Hypernex.Networking.Messages;
 [Msg]
 public class PlayerVoice
 {
-    [MsgKey(1)] public string MessageId => typeof(PlayerVoice).FullName;
     [MsgKey(2)] public JoinAuth Auth;
     /// <summary>
     /// Bitrate of data

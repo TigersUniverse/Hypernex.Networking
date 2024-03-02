@@ -8,7 +8,6 @@ namespace Hypernex.Networking.Messages;
 [Msg]
 public class RespondAuth
 {
-    [MsgKey(1)] public string MessageId => typeof(RespondAuth).FullName;
     [MsgKey(2)] public string UserId;
     [MsgKey(3)] public string GameServerId;
     [MsgKey(4)] public string InstanceId;

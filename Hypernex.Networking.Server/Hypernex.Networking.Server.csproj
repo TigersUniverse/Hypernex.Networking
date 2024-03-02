@@ -35,6 +35,9 @@
       <Reference Include="Nexport">
         <HintPath>Libs\Nexport.dll</HintPath>
       </Reference>
+      <Reference Include="ZstdSharp">
+        <HintPath>Libs\ZstdSharp.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

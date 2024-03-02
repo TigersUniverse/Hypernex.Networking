@@ -5,7 +5,6 @@ namespace Hypernex.Networking.Messages.Data;
 [Msg]
 public class NetworkedObject
 {
-    [MsgKey(1)] public string MessageId => typeof(NetworkedObject).FullName;
     // This is for Hierarchy based Games like Unity. This can be left empty, but be sure to handle it in your game.
     [MsgKey(2)] public string ObjectLocation;
     [MsgKey(3)] public bool IgnoreObjectLocation;

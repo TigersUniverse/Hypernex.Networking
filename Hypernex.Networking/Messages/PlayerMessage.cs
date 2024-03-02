@@ -9,7 +9,6 @@ namespace Hypernex.Networking.Messages;
 [Msg]
 public class PlayerMessage
 {
-    [MsgKey(1)] public string MessageId => typeof(PlayerMessage).FullName;
     [MsgKey(2)] public JoinAuth Auth;
     /// <summary>
     /// Used to define optional tags of a message, such as who can and cannot see a message

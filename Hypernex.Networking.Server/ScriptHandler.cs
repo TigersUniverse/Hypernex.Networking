@@ -31,6 +31,9 @@ public class ScriptHandler : IDisposable
         ["float2"] = typeof(float2),
         ["float3"] = typeof(float3),
         ["float4"] = typeof(float4),
+        ["MathF"] = typeof(ServerMathF),
+        ["SinCos"] = typeof(SinCos),
+        ["MidpointRounding"] = typeof(MidpointRounding),
         ["Http"] = typeof(HTTP),
         ["WebSocket"] = typeof(ServerWebSocket),
         ["ServerNetworkEvent"] = typeof(ServerNetworkEvent),
@@ -38,12 +41,22 @@ public class ScriptHandler : IDisposable
         ["ScriptEvent"] = typeof(ScriptEvent),
         ["HttpMediaType"] = typeof(HttpMediaType),
         ["OfflineNetworkedObject"] = typeof(OfflineNetworkedObject),
-        ["NetPlayer"] = typeof(NetPlayer),
-        ["NetPlayers"] = typeof(NetPlayers),
+        ["CoreBone"] = typeof(CoreBone),
+        ["Instance"] = typeof(Instance),
         ["Time"] = typeof(Time),
         ["UtcTime"] = typeof(UtcTime),
         ["ScriptEvents"] = typeof(ScriptEvents)
     };
+
+    internal static ScriptHandler GetScriptHandlerFromInstance(HypernexInstance instance)
+    {
+        foreach (ScriptHandler scriptHandler in Instances)
+        {
+            if(scriptHandler.Instance != instance) continue;
+            return scriptHandler;
+        }
+        return null;
+    }
     
     private Dictionary<NexboxScript, IInterpreter> RunningScripts = new();
 
@@ -69,7 +82,7 @@ public class ScriptHandler : IDisposable
     {
         interpreter.CreateGlobal("Events", Events);
         interpreter.CreateGlobal("NetworkEvent", new ServerNetworkEvent(this));
-        interpreter.CreateGlobal("Players", new NetPlayers(Instance));
+        interpreter.CreateGlobal("Instance", new Instance(Instance));
         foreach (KeyValuePair<string,object> keyValuePair in GlobalsToForward)
             interpreter.CreateGlobal(keyValuePair.Key, keyValuePair.Value);
     }

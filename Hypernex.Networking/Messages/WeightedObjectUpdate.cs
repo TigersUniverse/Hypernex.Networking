@@ -3,12 +3,10 @@
 namespace Hypernex.Networking.Messages;
 
 [Msg]
+[MsgCompress(22)]
 public class WeightedObjectUpdate
 {
-    [MsgKey(1)] public string MessageId => typeof(WeightedObjectUpdate).FullName;
-    
     // Player Meta
-    
     [MsgKey(2)] public JoinAuth Auth;
 
     /// <summary>

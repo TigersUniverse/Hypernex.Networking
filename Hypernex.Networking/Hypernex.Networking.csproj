@@ -51,6 +51,7 @@
         <Reference Include="Microsoft.NET.StringTools">
           <HintPath>Libs\Microsoft.NET.StringTools.dll</HintPath>
         </Reference>
+        <Reference Include="mscorlib" />
         <Reference Include="Nexbox">
           <HintPath>Libs\Nexbox.dll</HintPath>
         </Reference>
@@ -64,6 +65,7 @@
         <Reference Include="System.Collections.Immutable">
           <HintPath>Libs\System.Collections.Immutable.dll</HintPath>
         </Reference>
+        <Reference Include="System.ComponentModel.Composition" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Memory">
@@ -79,6 +81,9 @@
           <HintPath>Libs\System.Threading.Tasks.Extensions.dll</HintPath>
         </Reference>
         <Reference Include="System.Xml" />
+        <Reference Include="ZstdSharp">
+          <HintPath>Libs\ZstdSharp.dll</HintPath>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="HypernexInstanceClient.cs" />
@@ -86,21 +91,24 @@
         <Compile Include="HypernexSocketServer.cs" />
         <Compile Include="Messages\AddModerator.cs" />
         <Compile Include="Messages\BanPlayer.cs" />
+        <Compile Include="Messages\Bulk\BulkWeightedObjectUpdate.cs" />
+        <Compile Include="Messages\Data\CoreBone.cs" />
         <Compile Include="Messages\Data\float2.cs" />
         <Compile Include="Messages\Data\float3.cs" />
         <Compile Include="Messages\Data\float4.cs" />
         <Compile Include="Messages\Data\NetworkedObject.cs" />
+        <Compile Include="Messages\Data\SinCos.cs" />
         <Compile Include="Messages\Data\WorldObjectAction.cs" />
         <Compile Include="Messages\InstancePlayers.cs" />
         <Compile Include="Messages\JoinAuth.cs" />
         <Compile Include="Messages\KickPlayer.cs" />
+        <Compile Include="Messages\PlayerDataUpdate.cs" />
         <Compile Include="Messages\PlayerMessage.cs" />
         <Compile Include="Messages\PlayerObjectUpdate.cs" />
         <Compile Include="Messages\PlayerUpdate.cs" />
         <Compile Include="Messages\PlayerVoice.cs" />
         <Compile Include="Messages\NetworkedEvent.cs" />
         <Compile Include="Messages\RemoveModerator.cs" />
-        <Compile Include="Messages\ResetWeightedObjects.cs" />
         <Compile Include="Messages\RespondAuth.cs" />
         <Compile Include="Messages\ServerConsoleExecute.cs" />
         <Compile Include="Messages\ServerConsoleLog.cs" />
@@ -118,6 +126,9 @@
       <Content Include="Libs\HypernexSharp.dll" />
       <Content Include="Libs\Nexbox.dll" />
       <Content Include="Messages\Data\README.md" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="App.config" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

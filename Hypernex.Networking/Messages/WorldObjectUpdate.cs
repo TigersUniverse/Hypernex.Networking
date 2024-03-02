@@ -4,9 +4,9 @@ using Nexport;
 namespace Hypernex.Networking.Messages;
 
 [Msg]
+[MsgCompress(22)]
 public class WorldObjectUpdate
 {
-    [MsgKey(1)] public string MessageId => typeof(WorldObjectUpdate).FullName;
     [MsgKey(2)] public JoinAuth Auth;
     
     /// <summary>

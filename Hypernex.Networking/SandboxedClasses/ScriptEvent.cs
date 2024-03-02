@@ -5,5 +5,10 @@ public enum ScriptEvent
     OnUserJoin,
     OnUserLeave,
     OnUserNetworkEvent,
-    OnServerNetworkEvent
+    OnServerNetworkEvent,
+    OnPlayerUpdate,
+    OnNetworkedObject,
+    OnPlayerTags,
+    OnPlayerExtraneousObject,
+    OnWeight
 }

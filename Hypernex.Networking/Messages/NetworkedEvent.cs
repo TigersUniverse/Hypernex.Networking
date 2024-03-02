@@ -9,7 +9,6 @@ namespace Hypernex.Networking.Messages;
 [Msg]
 public class NetworkedEvent
 {
-    [MsgKey(1)] public string MessageId => typeof(NetworkedEvent).FullName;
     // Optional if from Server to Client
     [MsgKey(2)] public JoinAuth Auth;
     /// <summary>

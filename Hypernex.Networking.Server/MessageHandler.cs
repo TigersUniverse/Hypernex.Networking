@@ -1,5 +1,6 @@
 ﻿using Hypernex.CCK;
 using Hypernex.Networking.Messages;
+using Hypernex.Networking.Messages.Bulk;
 using Hypernex.Networking.Messages.Data;
 using Nexport;
 
@@ -18,10 +19,17 @@ public static class MessageHandler
                 PlayerHandler.HandlePlayerUpdate(instance, playerUpdate, from);
                 break;
             }
+            case "Hypernex.Networking.Messages.PlayerDataUpdate":
+            {
+                PlayerDataUpdate playerDataUpdate = (PlayerDataUpdate) Convert.ChangeType(msgMeta.Data, typeof(PlayerDataUpdate));
+                PlayerHandler.HandlePlayerDataUpdate(instance, playerDataUpdate, from);
+                break;
+            }
             case "Hypernex.Networking.Messages.PlayerObjectUpdate":
             {
                 PlayerObjectUpdate playerObjectUpdate = (PlayerObjectUpdate) Convert.ChangeType(msgMeta.Data, typeof(PlayerObjectUpdate));
-                PlayerHandler.HandlePlayerObjectUpdate(instance, playerObjectUpdate, from);
+                playerObjectUpdate.Auth.TempToken = String.Empty;
+                instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerObjectUpdate));
                 break;
             }
             case "Hypernex.Networking.Messages.WeightedObjectUpdate":
@@ -31,11 +39,11 @@ public static class MessageHandler
                 PlayerHandler.HandleWeightedObjectUpdate(instance, weightedObjectUpdate, from);
                 break;
             }
-            case "Hypernex.Networking.Messages.ResetWeightedObjects":
+            case "Hypernex.Networking.Messages.Bulk.BulkWeightedObjectUpdate":
             {
-                ResetWeightedObjects resetWeightedObjects =
-                    (ResetWeightedObjects) Convert.ChangeType(msgMeta.Data, typeof(ResetWeightedObjects));
-                PlayerHandler.ResetWeightedObjectCache(instance, resetWeightedObjects.Auth.UserId, from);
+                BulkWeightedObjectUpdate weightedObjectUpdates =
+                    (BulkWeightedObjectUpdate) Convert.ChangeType(msgMeta.Data, typeof(BulkWeightedObjectUpdate));
+                PlayerHandler.HandleWeightedObjectUpdate(instance, weightedObjectUpdates, from);
                 break;
             }
             case "Hypernex.Networking.Messages.PlayerVoice":
@@ -77,12 +85,8 @@ public static class MessageHandler
         internal static Dictionary<string, PlayerUpdate> PlayerUpdates => new (_playerUpdates);
         private static Dictionary<string, PlayerUpdate> _playerUpdates = new ();
 
-        internal static Dictionary<string, Dictionary<string, List<NetworkedObject>>> NetworkObjects => new(_networkObjects);
-        private static Dictionary<string, Dictionary<string, List<NetworkedObject>>> _networkObjects = new();
-
-        internal static Dictionary<string, Dictionary<string, List<WeightedObjectUpdate>>> WeightedObjects =>
-            new(_weightedObjects);
-        private static Dictionary<string, Dictionary<string, List<WeightedObjectUpdate>>> _weightedObjects = new();
+        internal static Dictionary<string, PlayerDataUpdate> PlayerDataUpdates => new(_playerDatas);
+        private static Dictionary<string, PlayerDataUpdate> _playerDatas = new();
 
         public static void HandlePlayerUpdate(HypernexInstance instance, PlayerUpdate playerUpdate, ClientIdentifier from)
         {
@@ -94,6 +98,29 @@ public static class MessageHandler
                 return;
             }
             _playerUpdates.Add(playerUpdate.Auth.UserId, playerUpdate);
+            ScriptHandler.GetScriptHandlerFromInstance(instance)?.Events.OnPlayerUpdate.Invoke(playerUpdate.Auth.UserId,
+                playerUpdate.IsPlayerVR, playerUpdate.AvatarId, playerUpdate.IsSpeaking, playerUpdate.IsFBT,
+                playerUpdate.VRIKJson);
+        }
+
+        public static void HandlePlayerDataUpdate(HypernexInstance instance, PlayerDataUpdate playerDataUpdate,
+            ClientIdentifier from)
+        {
+            playerDataUpdate.Auth.TempToken = String.Empty;
+            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerDataUpdate), MessageChannel.Unreliable);
+            if (_playerDatas.ContainsKey(playerDataUpdate.Auth.UserId))
+            {
+                _playerDatas[playerDataUpdate.Auth.UserId] = playerDataUpdate;
+                return;
+            }
+            _playerDatas.Add(playerDataUpdate.Auth.UserId, playerDataUpdate);
+            ScriptHandler scriptHandler = ScriptHandler.GetScriptHandlerFromInstance(instance);
+            if(scriptHandler == null) return;
+            scriptHandler.Events.OnPlayerTags.Invoke(playerDataUpdate.Auth.UserId,
+                playerDataUpdate.PlayerAssignedTags.ToArray());
+            foreach (KeyValuePair<string, object> keyValuePair in playerDataUpdate.ExtraneousData)
+                scriptHandler.Events.OnExtraneousObject.Invoke(playerDataUpdate.Auth.UserId, keyValuePair.Key,
+                    keyValuePair.Value);
         }
 
         public static void HandleWeightedObjectUpdate(HypernexInstance instance,
@@ -102,102 +129,21 @@ public static class MessageHandler
             weightedObjectUpdate.Auth.TempToken = String.Empty;
             instance.BroadcastMessageWithExclusion(from, Msg.Serialize(weightedObjectUpdate),
                 MessageChannel.Unreliable);
-            CacheWeightedObject(instance.InstanceId, weightedObjectUpdate.Auth.UserId, weightedObjectUpdate);
+            ScriptHandler.GetScriptHandlerFromInstance(instance)?.Events.OnWeightedObject.Invoke(
+                weightedObjectUpdate.Auth.UserId, weightedObjectUpdate.WeightIndex, weightedObjectUpdate.Weight);
         }
-
-        private static int GetNetworkObjectIndex(string instanceId, string userid, NetworkedObject networkedObject)
+        
+        public static void HandleWeightedObjectUpdate(HypernexInstance instance,
+            BulkWeightedObjectUpdate weightedObjectUpdates, ClientIdentifier from)
         {
-            List<NetworkedObject> networkedObjects = NetworkObjects[instanceId][userid];
-            for (int i = 0; i < networkedObjects.Count; i++)
-            {
-                NetworkedObject networkObject = networkedObjects.ElementAt(i);
-                if (networkObject.ObjectLocation == networkedObject.ObjectLocation)
-                    return i;
-            }
-            return -1;
-        }
-
-        internal static void ResetWeightedObjectCache(HypernexInstance instance, string userid, ClientIdentifier clientIdentifier)
-        {
-            if(!_weightedObjects.ContainsKey(instance.InstanceId))
-                return;
-            Dictionary<string, List<WeightedObjectUpdate>> userData = _weightedObjects[instance.InstanceId];
-            if(!userData.ContainsKey(userid))
-                _weightedObjects[instance.InstanceId][userid].Clear();
-            ResetWeightedObjects r = new ResetWeightedObjects
-            {
-                Auth = new JoinAuth
-                {
-                    UserId = userid
-                }
-            };
-            instance.BroadcastMessageWithExclusion(clientIdentifier, Msg.Serialize(r));
-        }
-
-        private static void CacheWeightedObject(string instanceId, string userid,
-            WeightedObjectUpdate weightedObjectUpdate)
-        {
-            if(!_weightedObjects.ContainsKey(instanceId))
-                _weightedObjects.Add(instanceId, new Dictionary<string, List<WeightedObjectUpdate>>());
-            Dictionary<string, List<WeightedObjectUpdate>> userData = _weightedObjects[instanceId];
-            if(!userData.ContainsKey(userid))
-            {
-                _weightedObjects[instanceId].Add(userid, new List<WeightedObjectUpdate>());
-                _weightedObjects[instanceId][userid].Add(weightedObjectUpdate);
-            }
-            else
-            {
-                List<WeightedObjectUpdate> weightedObjects = _weightedObjects[instanceId][userid];
-                try
-                {
-                    int i = weightedObjects.FindIndex(x =>
-                        x.TypeOfWeight == weightedObjectUpdate.TypeOfWeight &&
-                        x.WeightIndex == weightedObjectUpdate.WeightIndex &&
-                        x.PathToWeightContainer == weightedObjectUpdate.PathToWeightContainer);
-                    if (i > -1)
-                        _weightedObjects[instanceId][userid][i] = weightedObjectUpdate;
-                    else
-                        throw new Exception();
-                }
-                catch (Exception)
-                {
-                    _weightedObjects[instanceId][userid].Add(weightedObjectUpdate);
-                }
-            }
-        }
-
-        internal static void RemoveInstanceFromPlayerObjects(HypernexInstance instance)
-        {
-            if (NetworkObjects.ContainsKey(instance.InstanceId))
-                _networkObjects.Remove(instance.InstanceId);
-            if (WeightedObjects.ContainsKey(instance.InstanceId))
-                _weightedObjects.Remove(instance.InstanceId);
-        }
-
-        public static void HandlePlayerObjectUpdate(HypernexInstance instance, PlayerObjectUpdate playerObjectUpdate,
-            ClientIdentifier from)
-        {
-            playerObjectUpdate.Auth.TempToken = String.Empty;
-            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerObjectUpdate), MessageChannel.Unreliable);
-            string instanceId = instance.InstanceId;
-            if (string.IsNullOrEmpty(instanceId))
-                return;
-            if(!_networkObjects.ContainsKey(instanceId))
-                _networkObjects.Add(instanceId, new Dictionary<string, List<NetworkedObject>>());
-            Dictionary<string, List<NetworkedObject>> dic = _networkObjects[instanceId];
-            if (dic.ContainsKey(playerObjectUpdate.Auth.UserId))
-            {
-                int i = GetNetworkObjectIndex(instanceId, playerObjectUpdate.Auth.UserId, playerObjectUpdate.Object);
-                if(i == -1)
-                    _networkObjects[instanceId][playerObjectUpdate.Auth.UserId].Add(playerObjectUpdate.Object);
-                else
-                {
-                    _networkObjects[instanceId][playerObjectUpdate.Auth.UserId].RemoveAt(i);
-                    _networkObjects[instanceId][playerObjectUpdate.Auth.UserId].Insert(i, playerObjectUpdate.Object);
-                }
-                return;
-            }
-            _networkObjects[instanceId].Add(playerObjectUpdate.Auth.UserId, new List<NetworkedObject>{playerObjectUpdate.Object});
+            weightedObjectUpdates.Auth.TempToken = String.Empty;
+            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(weightedObjectUpdates),
+                MessageChannel.Unreliable);
+            ScriptHandler scriptHandler = ScriptHandler.GetScriptHandlerFromInstance(instance);
+            if(scriptHandler == null) return;
+            foreach (WeightedObjectUpdate weightedObjectUpdate in weightedObjectUpdates.WeightedObjectUpdates)
+                scriptHandler.Events.OnWeightedObject.Invoke(weightedObjectUpdates.Auth.UserId,
+                    weightedObjectUpdate.WeightIndex, weightedObjectUpdate.Weight);
         }
 
         public static void HandlePlayerVoice(HypernexInstance instance, PlayerVoice playerVoice, ClientIdentifier from)
@@ -294,7 +240,6 @@ public static class MessageHandler
 
         private static void UpdateObject(HypernexInstance instance, string userid, WorldObjectUpdate worldObjectUpdate)
         {
-            //worldObjectUpdate.Action = WorldObjectAction.Update;
             Dictionary<string, List<WorldObjectUpdate>> dic = GetInstance(instance);
             if (!dic.ContainsKey(userid))
                 return;
@@ -312,7 +257,6 @@ public static class MessageHandler
 
         private static void MakeObjectClaimable(HypernexInstance instance, string userid, WorldObjectUpdate worldObjectUpdate)
         {
-            //worldObjectUpdate.Action = WorldObjectAction.Unclaim;
             Dictionary<string, List<WorldObjectUpdate>> dic = GetInstance(instance);
             if (!dic.ContainsKey(userid))
                 return;
