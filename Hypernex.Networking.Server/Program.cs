@@ -90,7 +90,12 @@ hypernexSocketServer = new HypernexSocketServer(hypernexObject, ServerConfig.Loa
         }
         MessageHandler.ObjectHandler.RemoveInstanceFromWorldObjects(instance);
     });
-HandleCommand(Console.ReadLine() ?? String.Empty);
+while (true)
+{
+    Thread.Yield();
+    if (HandleCommand(Console.ReadLine() ?? String.Empty))
+        break;
+}
 hypernexObject.CloseGameServerSocket();
 Console.ForegroundColor = ConsoleColor.DarkCyan;
 Console.WriteLine("Goodbye!");
@@ -100,11 +105,11 @@ const string COMMANDS = "instances - Gets a list of all open instances\n" +
                         "exit - Safely shuts down the server and all instances\n" +
                         "help - Shows a list of all commands";
 
-void HandleCommand(string input)
+bool HandleCommand(string input)
 {
     string[] s = input.Split(" ");
     if(s.Length <= 0)
-        HandleCommand(Console.ReadLine() ?? String.Empty);
+        return false;
     switch (s[0].ToLower())
     {
         case "instances":
@@ -119,5 +124,6 @@ void HandleCommand(string input)
             break;
     }
     if(!end)
-        HandleCommand(Console.ReadLine() ?? String.Empty);
+        return false;
+    return true;
 }
