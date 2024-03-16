@@ -29,7 +29,7 @@ public static class MessageHandler
             {
                 PlayerObjectUpdate playerObjectUpdate = (PlayerObjectUpdate) Convert.ChangeType(msgMeta.Data, typeof(PlayerObjectUpdate));
                 playerObjectUpdate.Auth.TempToken = String.Empty;
-                instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerObjectUpdate));
+                instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerObjectUpdate), MessageChannel.Unreliable);
                 break;
             }
             case "Hypernex.Networking.Messages.WeightedObjectUpdate":
@@ -91,7 +91,7 @@ public static class MessageHandler
         public static void HandlePlayerUpdate(HypernexInstance instance, PlayerUpdate playerUpdate, ClientIdentifier from)
         {
             playerUpdate.Auth.TempToken = String.Empty;
-            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerUpdate), MessageChannel.Unreliable);
+            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerUpdate), MessageChannel.UnreliableSequenced);
             if (_playerUpdates.ContainsKey(playerUpdate.Auth.UserId))
             {
                 _playerUpdates[playerUpdate.Auth.UserId] = playerUpdate;
@@ -107,7 +107,7 @@ public static class MessageHandler
             ClientIdentifier from)
         {
             playerDataUpdate.Auth.TempToken = String.Empty;
-            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerDataUpdate), MessageChannel.Unreliable);
+            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerDataUpdate), MessageChannel.UnreliableSequenced);
             if (_playerDatas.ContainsKey(playerDataUpdate.Auth.UserId))
             {
                 _playerDatas[playerDataUpdate.Auth.UserId] = playerDataUpdate;
@@ -138,7 +138,7 @@ public static class MessageHandler
         {
             weightedObjectUpdates.Auth.TempToken = String.Empty;
             instance.BroadcastMessageWithExclusion(from, Msg.Serialize(weightedObjectUpdates),
-                MessageChannel.Unreliable);
+                MessageChannel.UnreliableSequenced);
             ScriptHandler scriptHandler = ScriptHandler.GetScriptHandlerFromInstance(instance);
             if(scriptHandler == null) return;
             foreach (WeightedObjectUpdate weightedObjectUpdate in weightedObjectUpdates.WeightedObjectUpdates)
@@ -149,7 +149,7 @@ public static class MessageHandler
         public static void HandlePlayerVoice(HypernexInstance instance, PlayerVoice playerVoice, ClientIdentifier from)
         {
             playerVoice.Auth.TempToken = String.Empty;
-            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerVoice));
+            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerVoice), MessageChannel.UnreliableSequenced);
         }
     }
 
