@@ -8,7 +8,6 @@
         RightHand,
         Hip,
         LeftFoot,
-        RightFoot,
-        Camera
+        RightFoot
     }
 }

@@ -2,6 +2,7 @@
 using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Bulk;
 using Hypernex.Networking.Messages.Data;
+using Hypernex.Networking.Server.SandboxedClasses;
 using Nexport;
 
 namespace Hypernex.Networking.Server;
@@ -28,8 +29,7 @@ public static class MessageHandler
             case "Hypernex.Networking.Messages.PlayerObjectUpdate":
             {
                 PlayerObjectUpdate playerObjectUpdate = (PlayerObjectUpdate) Convert.ChangeType(msgMeta.Data, typeof(PlayerObjectUpdate));
-                playerObjectUpdate.Auth.TempToken = String.Empty;
-                instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerObjectUpdate), MessageChannel.Unreliable);
+                PlayerHandler.HandlePlayerObjectUpdate(instance, playerObjectUpdate, from);
                 break;
             }
             case "Hypernex.Networking.Messages.WeightedObjectUpdate":
@@ -121,6 +121,18 @@ public static class MessageHandler
             foreach (KeyValuePair<string, object> keyValuePair in playerDataUpdate.ExtraneousData)
                 scriptHandler.Events.OnExtraneousObject.Invoke(playerDataUpdate.Auth.UserId, keyValuePair.Key,
                     keyValuePair.Value);
+        }
+
+        public static void HandlePlayerObjectUpdate(HypernexInstance instance, PlayerObjectUpdate playerObjectUpdate,
+            ClientIdentifier from)
+        {
+            playerObjectUpdate.Auth.TempToken = String.Empty;
+            instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerObjectUpdate), MessageChannel.Unreliable);
+            ScriptHandler scriptHandler = ScriptHandler.GetScriptHandlerFromInstance(instance);
+            if(scriptHandler == null) return;
+            foreach (KeyValuePair<int, NetworkedObject> keyValuePair in playerObjectUpdate.Objects)
+                scriptHandler.Events.OnPlayerObject.Invoke(playerObjectUpdate.Auth.UserId, keyValuePair.Key,
+                    new OfflineNetworkedObject(keyValuePair.Value));
         }
 
         public static void HandleWeightedObjectUpdate(HypernexInstance instance,

@@ -31,7 +31,7 @@ public class ScriptEvents
     /// <summary>
     /// When a client updates their Player Object information
     /// </summary>
-    internal Action<string, CoreBone, OfflineNetworkedObject> OnPlayerObject = (userId, coreBone, obj) => { };
+    internal Action<string, int, OfflineNetworkedObject> OnPlayerObject = (userId, coreBone, obj) => { };
 
     /// <summary>
     /// When a client updates a weight on their avatar
