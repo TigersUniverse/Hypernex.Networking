@@ -7,7 +7,11 @@
         LeftHand,
         RightHand,
         Hip,
+        HipTarget,
         LeftFoot,
-        RightFoot
+        LeftFootTarget,
+        RightFoot,
+        RightFootTarget,
+        Max
     }
 }
