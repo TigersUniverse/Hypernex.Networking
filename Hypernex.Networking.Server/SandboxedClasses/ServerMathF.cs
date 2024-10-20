@@ -29,9 +29,12 @@ public static class ServerMathF
     public static float Cosh(float x) => MathF.Cosh(x);
     public static float Exp(float x) => MathF.Exp(x);
     public static float Floor(float x) => MathF.Floor(x);
+    public static float FusedMultiplyAdd(float x, float y, float z) => MathF.FusedMultiplyAdd(x, y, z);
     public static float IEEERemainder(float x, float y) => MathF.IEEERemainder(x, y);
     public static float IEEERemainder(float2 v) => MathF.IEEERemainder(v.x, v.y);
     public static float Log(float x) => MathF.Log(x);
+    public static float Log(float x, float y) => MathF.Log(x, y);
+    public static float Log(float2 v) => MathF.Log(v.x, v.y);
     public static float Log10(float x) => MathF.Log10(x);
     public static float Max(float x, float y) => MathF.Max(x, y);
     public static float Max(float2 v) => MathF.Max(v.x, v.y);
