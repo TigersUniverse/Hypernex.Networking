@@ -127,6 +127,13 @@ public static class MessageHandler
             ClientIdentifier from)
         {
             playerObjectUpdate.Auth.TempToken = String.Empty;
+            if (!StabilityTools.CheckFloats(playerObjectUpdate))
+            {
+                string userId = instance.GetUserIdFromClientIdentifier(from);
+                Logger.CurrentLogger.Warn($"Banned {userId} ({from.Identifier}) for invalid floats");
+                instance.BanUser(userId, from);
+                return;
+            }
             instance.BroadcastMessageWithExclusion(from, Msg.Serialize(playerObjectUpdate), MessageChannel.Unreliable);
             ScriptHandler scriptHandler = ScriptHandler.GetScriptHandlerFromInstance(instance);
             if(scriptHandler == null) return;
