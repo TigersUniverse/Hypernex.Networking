@@ -46,7 +46,8 @@ public class ScriptHandler : IDisposable
         ["Instance"] = typeof(Instance),
         ["Time"] = typeof(Time),
         ["UtcTime"] = typeof(UtcTime),
-        ["ScriptEvents"] = typeof(ScriptEvents)
+        ["ScriptEvents"] = typeof(ScriptEvents),
+        ["Streaming"] = typeof(Streaming)
     };
 
     internal static ScriptHandler GetScriptHandlerFromInstance(HypernexInstance instance)
