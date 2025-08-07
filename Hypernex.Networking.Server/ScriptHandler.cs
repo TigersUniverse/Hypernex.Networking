@@ -2,6 +2,7 @@
 using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Data;
 using Hypernex.Networking.Server.SandboxedClasses;
+using Hypernex.Networking.Server.SandboxedClasses.Handlers;
 using Hypernex.Sandboxing.SandboxedTypes;
 using Nexbox;
 using Nexbox.Interpreters;
@@ -80,9 +81,7 @@ public class ScriptHandler : IDisposable
 
     private void CreateGlobalsForInterpreter(IInterpreter interpreter)
     {
-        interpreter.CreateGlobal("Events", Events);
-        interpreter.CreateGlobal("NetworkEvent", new ServerNetworkEvent(this));
-        interpreter.CreateGlobal("Instance", new Instance(Instance));
+        interpreter.CreateGlobal("Instance", new Instance(Instance, Events, new ServerNetworkEvent(this)));
         foreach (KeyValuePair<string,object> keyValuePair in GlobalsToForward)
             interpreter.CreateGlobal(keyValuePair.Key, keyValuePair.Value);
     }

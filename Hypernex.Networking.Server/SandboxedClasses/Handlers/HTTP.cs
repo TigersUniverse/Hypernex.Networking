@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Hypernex.Networking.Server.SandboxedClasses;
+namespace Hypernex.Networking.Server.SandboxedClasses.Handlers;
 
 public class HTTP
 {

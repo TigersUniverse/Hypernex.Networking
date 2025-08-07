@@ -1,9 +1,7 @@
-﻿using Hypernex.Networking.Messages.Data;
-using Hypernex.Networking.Server.SandboxedClasses;
-using Hypernex.Sandboxing.SandboxedTypes;
+﻿using Hypernex.Sandboxing.SandboxedTypes;
 using Nexbox;
 
-namespace Hypernex.Networking.Server;
+namespace Hypernex.Networking.Server.SandboxedClasses.Handlers;
 
 public class ScriptEvents
 {
