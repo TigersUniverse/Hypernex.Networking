@@ -1,7 +1,7 @@
 ﻿using Hypernex.Networking.Messages;
 using Nexport;
 
-namespace Hypernex.Networking.Server.SandboxedClasses;
+namespace Hypernex.Networking.Server.SandboxedClasses.Handlers;
 
 public class ServerNetworkEvent
 {
