@@ -82,7 +82,7 @@ public class ScriptHandler : IDisposable
 
     private void CreateGlobalsForInterpreter(IInterpreter interpreter)
     {
-        interpreter.CreateGlobal("Instance", new Instance(Instance, Events, new ServerNetworkEvent(this)));
+        interpreter.CreateGlobal("instance", new Instance(Instance, Events, new ServerNetworkEvent(this)));
         foreach (KeyValuePair<string,object> keyValuePair in GlobalsToForward)
             interpreter.CreateGlobal(keyValuePair.Key, keyValuePair.Value);
     }
