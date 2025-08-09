@@ -7,6 +7,7 @@ using Hypernex.Sandboxing.SandboxedTypes;
 using Nexbox;
 using Nexbox.Interpreters;
 using Nexport;
+using Nexport.BuiltinMessages;
 
 namespace Hypernex.Networking.Server;
 
@@ -73,7 +74,11 @@ public class ScriptHandler : IDisposable
             if (meta.TypeOfData == typeof(NetworkedEvent))
             {
                 NetworkedEvent networkedEvent = (NetworkedEvent) Convert.ChangeType(meta.Data, typeof(NetworkedEvent))!;
-                Events.OnUserNetworkEvent.Invoke(userId, networkedEvent.EventName, (object[])networkedEvent.Data.ToArray()[0]);
+                Events.OnUserNetworkEvent.Invoke(userId, networkedEvent.EventName,networkedEvent.Data.Select(x =>
+                {
+                    x.Fix();
+                    return x.Data;
+                }).ToArray());
             }
         };
         Instance.OnClientDisconnect += Events.OnUserLeave;
