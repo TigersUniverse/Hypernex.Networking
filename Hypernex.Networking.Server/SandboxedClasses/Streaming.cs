@@ -51,6 +51,7 @@ public static class Streaming
         switch (hostname.ToLower())
         {
             case "youtube.com":
+            case "www.youtube.com":
             case "youtu.be":
             case "m.youtube.com":
                 return true;
@@ -66,6 +67,7 @@ public static class Streaming
             Uri uri = new Uri(url);
             if (NeedsClientFetch(uri.Host))
             {
+                VideoRequestHelper.SetDownloadUrl(ref videoRequest, url);
                 VideoRequestHelper.SetNeedsClientFetch(ref videoRequest, true);
                 SandboxFuncTools.InvokeSandboxFunc(SandboxFuncTools.TryConvert(onDone), videoRequest);
                 return;
