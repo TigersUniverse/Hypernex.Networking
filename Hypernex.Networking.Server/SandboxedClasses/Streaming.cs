@@ -1,4 +1,5 @@
-﻿using Hypernex.Networking.Messages;
+﻿using Hypernex.CCK;
+using Hypernex.Networking.SandboxedClasses;
 using Nexbox;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Metadata;
@@ -61,15 +62,11 @@ public static class Streaming
     {
         try
         {
-            VideoRequest videoRequest = new VideoRequest
-            {
-                MediaUrl = url,
-                Options = options
-            };
+            VideoRequest videoRequest = VideoRequestHelper.Create(url, options);
             Uri uri = new Uri(url);
             if (NeedsClientFetch(uri.Host))
             {
-                videoRequest.NeedsClientFetch = true;
+                VideoRequestHelper.SetNeedsClientFetch(ref videoRequest, true);
                 SandboxFuncTools.InvokeSandboxFunc(SandboxFuncTools.TryConvert(onDone), videoRequest);
                 return;
             }
@@ -88,23 +85,24 @@ public static class Streaming
             }
             if (!string.IsNullOrEmpty(liveUrl))
             {
-                videoRequest.IsStream = true;
-                videoRequest.DownloadUrl = liveUrl;
+                VideoRequestHelper.SetIsStream(ref videoRequest, true);
+                VideoRequestHelper.SetDownloadUrl(ref videoRequest, liveUrl);
                 SandboxFuncTools.InvokeSandboxFunc(SandboxFuncTools.TryConvert(onDone), videoRequest);
                 return;
             }
             if (IsStream(uri))
             {
-                videoRequest.IsStream = true;
-                videoRequest.DownloadUrl = url;
+                VideoRequestHelper.SetIsStream(ref videoRequest, true);
+                VideoRequestHelper.SetDownloadUrl(ref videoRequest, liveUrl);
                 SandboxFuncTools.InvokeSandboxFunc(SandboxFuncTools.TryConvert(onDone), videoRequest);
                 return;
             }
-            videoRequest.DownloadUrl = metaResult.Data.Url;
+            VideoRequestHelper.SetDownloadUrl(ref videoRequest, metaResult.Data.Url);
             SandboxFuncTools.InvokeSandboxFunc(SandboxFuncTools.TryConvert(onDone), videoRequest);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Logger.CurrentLogger.Critical(e);
             SandboxFuncTools.InvokeSandboxFunc(SandboxFuncTools.TryConvert(onDone));
         }
     }

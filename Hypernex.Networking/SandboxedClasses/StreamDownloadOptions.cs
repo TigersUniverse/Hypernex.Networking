@@ -1,6 +1,6 @@
 ﻿using Nexport;
 
-namespace Hypernex.Networking.Messages;
+namespace Hypernex.Networking.SandboxedClasses;
 
 [Msg]
 public class StreamDownloadOptions

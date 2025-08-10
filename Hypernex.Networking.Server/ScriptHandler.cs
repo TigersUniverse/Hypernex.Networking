@@ -1,6 +1,7 @@
 ﻿using Hypernex.CCK;
 using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Data;
+using Hypernex.Networking.SandboxedClasses;
 using Hypernex.Networking.Server.SandboxedClasses;
 using Hypernex.Networking.Server.SandboxedClasses.Handlers;
 using Hypernex.Sandboxing.SandboxedTypes;
@@ -48,7 +49,9 @@ public class ScriptHandler : IDisposable
         ["Time"] = typeof(Time),
         ["UtcTime"] = typeof(UtcTime),
         ["ScriptEvents"] = typeof(ScriptEvents),
-        ["Streaming"] = typeof(Streaming)
+        ["Streaming"] = typeof(Streaming),
+        ["VideoRequest"] = typeof(VideoRequest),
+        ["StreamDownloadOptions"] = typeof(StreamDownloadOptions)
     };
 
     internal static ScriptHandler GetScriptHandlerFromInstance(HypernexInstance instance)

@@ -109,8 +109,6 @@
         <Compile Include="Messages\PlayerVoice.cs" />
         <Compile Include="Messages\NetworkedEvent.cs" />
         <Compile Include="Messages\RemoveModerator.cs" />
-        <Compile Include="Messages\StreamDownloadOptions.cs" />
-        <Compile Include="Messages\VideoRequest.cs" />
         <Compile Include="Messages\RespondAuth.cs" />
         <Compile Include="Messages\ServerConsoleExecute.cs" />
         <Compile Include="Messages\ServerConsoleLog.cs" />
@@ -120,9 +118,11 @@
         <Compile Include="Messages\WorldObjectUpdate.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="SandboxedClasses\ScriptEvent.cs" />
+        <Compile Include="SandboxedClasses\StreamDownloadOptions.cs" />
         <Compile Include="SandboxedClasses\Time.cs" />
         <Compile Include="SandboxedClasses\TimeSettings.cs" />
         <Compile Include="SandboxedClasses\UtcTime.cs" />
+        <Compile Include="SandboxedClasses\VideoRequest.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Libs\Hypernex.CCK.dll" />
