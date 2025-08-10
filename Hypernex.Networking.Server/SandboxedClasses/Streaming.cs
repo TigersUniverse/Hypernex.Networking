@@ -10,7 +10,7 @@ public static class Streaming
 {
     internal static YoutubeDL ytdlp = new();
     
-    public static bool IsStream(Uri uri)
+    private static bool IsStream(Uri uri)
     {
         try
         {
