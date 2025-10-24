@@ -1,12 +1,14 @@
 ﻿using Hypernex.CCK;
 using Hypernex.Networking.Messages;
 using Hypernex.Networking.Messages.Data;
+using Hypernex.Networking.SandboxedClasses;
 using Hypernex.Networking.Server.SandboxedClasses;
 using Hypernex.Networking.Server.SandboxedClasses.Handlers;
 using Hypernex.Sandboxing.SandboxedTypes;
 using Nexbox;
 using Nexbox.Interpreters;
 using Nexport;
+using Nexport.BuiltinMessages;
 
 namespace Hypernex.Networking.Server;
 
@@ -46,7 +48,10 @@ public class ScriptHandler : IDisposable
         ["Instance"] = typeof(Instance),
         ["Time"] = typeof(Time),
         ["UtcTime"] = typeof(UtcTime),
-        ["ScriptEvents"] = typeof(ScriptEvents)
+        ["ScriptEvents"] = typeof(ScriptEvents),
+        ["Streaming"] = typeof(Streaming),
+        ["VideoRequest"] = typeof(VideoRequest),
+        ["StreamDownloadOptions"] = typeof(StreamDownloadOptions)
     };
 
     internal static ScriptHandler GetScriptHandlerFromInstance(HypernexInstance instance)
@@ -72,7 +77,11 @@ public class ScriptHandler : IDisposable
             if (meta.TypeOfData == typeof(NetworkedEvent))
             {
                 NetworkedEvent networkedEvent = (NetworkedEvent) Convert.ChangeType(meta.Data, typeof(NetworkedEvent))!;
-                Events.OnUserNetworkEvent.Invoke(userId, networkedEvent.EventName, (object[])networkedEvent.Data.ToArray()[0]);
+                Events.OnUserNetworkEvent.Invoke(userId, networkedEvent.EventName,networkedEvent.Data.Select(x =>
+                {
+                    x.Fix();
+                    return x.Data;
+                }).ToArray());
             }
         };
         Instance.OnClientDisconnect += Events.OnUserLeave;
@@ -81,7 +90,7 @@ public class ScriptHandler : IDisposable
 
     private void CreateGlobalsForInterpreter(IInterpreter interpreter)
     {
-        interpreter.CreateGlobal("Instance", new Instance(Instance, Events, new ServerNetworkEvent(this)));
+        interpreter.CreateGlobal("instance", new Instance(Instance, Events, new ServerNetworkEvent(this)));
         foreach (KeyValuePair<string,object> keyValuePair in GlobalsToForward)
             interpreter.CreateGlobal(keyValuePair.Key, keyValuePair.Value);
     }

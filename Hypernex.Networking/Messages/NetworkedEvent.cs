@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Nexport;
+using Nexport.BuiltinMessages;
 
 namespace Hypernex.Networking.Messages;
 
@@ -18,5 +19,5 @@ public class NetworkedEvent
     /// <summary>
     /// The data to send between the server. This data MUST be serializable!
     /// </summary>
-    [MsgKey(4)] public List<object> Data;
+    [MsgKey(4)] public List<DynamicNetworkObject> Data;
 }

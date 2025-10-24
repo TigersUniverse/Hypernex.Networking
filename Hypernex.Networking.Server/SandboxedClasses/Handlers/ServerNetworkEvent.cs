@@ -1,5 +1,6 @@
 ﻿using Hypernex.Networking.Messages;
 using Nexport;
+using Nexport.BuiltinMessages;
 
 namespace Hypernex.Networking.Server.SandboxedClasses.Handlers;
 
@@ -19,7 +20,11 @@ public class ServerNetworkEvent
             NetworkedEvent networkedEvent = new NetworkedEvent
             {
                 EventName = eventName,
-                Data = data?.ToList() ?? Array.Empty<object>().ToList()
+                Data = data != null ? data.Select(x => new DynamicNetworkObject
+                {
+                    TypeFullName = x.GetType().FullName,
+                    Data = x
+                }).ToList() : Array.Empty<DynamicNetworkObject>().ToList()
             };
             _scriptHandler.Instance.SendMessageToClient(clientIdentifier, Msg.Serialize(networkedEvent),
                 messageChannel);
@@ -32,7 +37,11 @@ public class ServerNetworkEvent
         NetworkedEvent networkedEvent = new NetworkedEvent
         {
             EventName = eventName,
-            Data = data?.ToList() ?? Array.Empty<object>().ToList()
+            Data = data != null ? data.Select(x => new DynamicNetworkObject
+            {
+                TypeFullName = x.GetType().FullName,
+                Data = x
+            }).ToList() : Array.Empty<DynamicNetworkObject>().ToList()
         };
         _scriptHandler.Instance.BroadcastMessage(Msg.Serialize(networkedEvent), messageChannel);
     }

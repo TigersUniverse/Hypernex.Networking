@@ -12,7 +12,7 @@ public class Instance
 
     public Instance()
     {
-        throw new Exception("Cannot instantiate NetPlayers!");
+        throw new Exception("Cannot instantiate Instance!");
     }
 
     public object GetHandler(string name)

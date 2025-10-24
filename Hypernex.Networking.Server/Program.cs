@@ -2,6 +2,7 @@
 using Hypernex.Networking;
 using Hypernex.Networking.Messages;
 using Hypernex.Networking.Server;
+using Hypernex.Networking.Server.SandboxedClasses;
 using HypernexSharp;
 using Nexport;
 
@@ -25,6 +26,15 @@ if (!ServerConfig.LoadConfig())
     return;
 }
 logger.Log("Loaded Config!");
+
+logger.Log("Initializing Dependencies...");
+if (!Directory.Exists("ytdlp"))
+{
+    Directory.CreateDirectory("ytdlp");
+    await YoutubeDLSharp.Utils.DownloadYtDlp("ytdlp");
+}
+Streaming.ytdlp.YoutubeDLPath = Path.Combine("ytdlp", YoutubeDLSharp.Utils.YtDlpBinaryName);
+logger.Log("Initialized Dependencies!");
 
 logger.Log("Registering Events...");
 HypernexSocketServer.OnInstance += instance =>

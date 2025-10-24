@@ -21,6 +21,8 @@ public class HTTP
         }
         return MediaTypeToString(HttpMediaType.TextPlain);
     }
+    
+    internal HTTP(){}
 
     public string Get(string url)
     {
