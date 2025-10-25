@@ -95,7 +95,7 @@ public static class Streaming
             if (IsStream(uri))
             {
                 VideoRequestHelper.SetIsStream(ref videoRequest, true);
-                VideoRequestHelper.SetDownloadUrl(ref videoRequest, liveUrl);
+                VideoRequestHelper.SetDownloadUrl(ref videoRequest, url);
                 SandboxFuncTools.InvokeSandboxFunc(SandboxFuncTools.TryConvert(onDone), videoRequest);
                 return;
             }
