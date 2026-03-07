@@ -92,6 +92,9 @@
         <Compile Include="Messages\AddModerator.cs" />
         <Compile Include="Messages\BanPlayer.cs" />
         <Compile Include="Messages\Bulk\BulkWeightedObjectUpdate.cs" />
+        <Compile Include="Messages\Databasing\AvatarConfiguration.cs" />
+        <Compile Include="Messages\Databasing\IIndex.cs" />
+        <Compile Include="Messages\Databasing\PlayerOverrides.cs" />
         <Compile Include="Messages\Data\CoreBone.cs" />
         <Compile Include="Messages\Data\float2.cs" />
         <Compile Include="Messages\Data\float3.cs" />
